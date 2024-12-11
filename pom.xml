@@ -264,6 +264,12 @@
 			</exclusions>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>ai.nets</groupId>
+			<artifactId>samj-BDV</artifactId>
+			<version>0.0.4-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>

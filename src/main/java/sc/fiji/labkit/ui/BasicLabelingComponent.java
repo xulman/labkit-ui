@@ -126,6 +126,11 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
 			floodFillController, selectLabelController, planarModeController);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
+
+		//makes the SAM addon available
+		//TODO: init only if such class is available on JVM path, in which case it should add an icon...
+		new SamjFill(bdvHandle, model);
+
 		return toolsPanel;
 	}
 
