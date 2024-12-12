@@ -45,6 +45,7 @@ import sc.fiji.labkit.ui.models.ImageLabelingModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
+import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -123,8 +124,15 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 			bdvHandle, model, actionsAndBehaviours);
 		final SelectLabelController selectLabelController =
 			new SelectLabelController(bdvHandle, model, actionsAndBehaviours);
+		//
+		//pass the Labkit's main window (JFrame) title to BDV's JPanel
+		//so that a downstream code that works solely with that BDV
+		//could provide some identification (to which BDV it belongs)
+		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
+		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
+		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController);
+			floodFillController, selectLabelController, planarModeController, samjFill);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}

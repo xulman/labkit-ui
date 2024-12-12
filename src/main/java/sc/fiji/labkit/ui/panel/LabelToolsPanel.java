@@ -29,17 +29,18 @@
 
 package sc.fiji.labkit.ui.panel;
 
+import ai.nets.samj.gui.BDVedMainGUI;
 import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
+import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 /**
  * Panel with the tool buttons for brush, flood fill, etc... Activates and
@@ -79,11 +80,17 @@ public class LabelToolsPanel extends JPanel {
 		"<small>Keyboard shortcuts:<br>" +
 		"- Hold down the <b>Shift</b> key and <b>Left Click</b> on the image<br>" +
 		"  to select the label under the cursor.</small></html>";
+	private static final String SAMJ_LABEL_TOOL_TIP = "<html><b>Annotate using SAMJ</b><br>" +
+		"<small>Controls:<br>" +
+		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
+		"&nbsp where SAMJ will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
+		"- <b>Double Left Click this icon</b> to open SAMJ controls and tutorials window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
+	private final SamjFill samjFillController;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -92,17 +99,38 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController)
+		PlanarModeController planarModeController, SamjFill samjFill)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
 		this.selectLabelController = selectLabelController;
 		this.planarModeController = planarModeController;
+		this.samjFillController = samjFill;
 
 		setLayout(new MigLayout("flowy, insets 0, gap 4pt, top", "[][][][][]",
 			"[]push"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 		initActionButtons();
+
+		if (samjFill != null) {
+			final JToggleButton samjButton = addActionButton(SAMJ_LABEL_TOOL_TIP,
+					(isToggled) -> { if (isToggled) samjFill.samj.startPrompts(); else samjFill.samj.stopPrompts(); },
+					false,
+					"/images/samj.png");
+			//
+			final BDVedMainGUI samjGui = new BDVedMainGUI(samjFill.samj, samjFill.getBdvName());
+			//
+			final long[] prevClicked = new long[] {0}; //intentionally impossible time
+			samjButton.addActionListener( (l) -> {
+				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left-button click
+				long nowClicked = System.currentTimeMillis();
+				if ((nowClicked - prevClicked[0]) < 300) {
+					samjGui.showWindow();
+				}
+				prevClicked[0] = nowClicked;
+			} );
+		}
+
 		add(initOptionPanel(), "wrap, growy");
 		add(initPlanarModeButton(), "growy");
 	}
@@ -219,6 +247,7 @@ public class LabelToolsPanel extends JPanel {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
+			samjFillController.setOverlapping(overlapping);
 		});
 		return checkBox;
 	}

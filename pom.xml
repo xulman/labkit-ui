@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>38.0.1</version>
+		<version>39.0.0</version>
 	</parent>
 
 	<groupId>sc.fiji</groupId>
@@ -94,6 +94,7 @@
 		<imglib2-cache.version>1.0.0-beta-18</imglib2-cache.version>
 		<imglib2-algorithm.version>0.15.3</imglib2-algorithm.version>
 		<bigdataviewer-core.version>10.6.0</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-36</bigdataviewer-vistools.version>
 		<labkit-pixel-classification.version>0.1.18</labkit-pixel-classification.version>
 	</properties>
 
@@ -261,6 +262,12 @@
 				</exclusion>
 			</exclusions>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>ai.nets</groupId>
+			<artifactId>samj-BDV</artifactId>
+			<version>0.0.6-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
