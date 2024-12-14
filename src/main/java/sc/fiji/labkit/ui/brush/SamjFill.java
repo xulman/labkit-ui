@@ -38,7 +38,6 @@ public class SamjFill {
 	public final BdvPrompts<?,FloatType> samj;
 	final BdvHandle bdv;
 	final LabelingModel model;
-	final double[] modelImgCoord = new double[3];
 	final PlanarShapesRasterizer rasterizer = new PlanarShapesRasterizer();
 
 	protected class SamjLabeller implements Consumer<PlanarPolygonIn3D> {
@@ -47,18 +46,11 @@ public class SamjFill {
 			final Label label = model.selectedLabel().get();
 			final RandomAccess<LabelingType<Label>> ra = model.labeling().get().randomAccess();
 
-			//TODO clean up here
-			// bdv.getViewerPanel().state().getViewerTransform() is giving global to view(er)
-			final AffineTransform3D viewToGlobal = bdv.getViewerPanel().state().getViewerTransform().inverse();
 			// model.labelTransformation() is giving image to global
-			final AffineTransform3D t = model.labelTransformation().inverse();
-			//t is now global to image
-			//t.concatenate(viewToGlobal);
+			final AffineTransform3D globalToImageT = model.labelTransformation().inverse();
 
-			rasterizer.rasterize(polygon, (pos) -> {
-				//NB: pos is at global coords
-				t.apply(pos, modelImgCoord);
-				ra.setPositionAndGet(Math.round(modelImgCoord[0]),Math.round(modelImgCoord[1]),Math.round(modelImgCoord[2])).add(label);
+			rasterizer.rasterize(polygon,globalToImageT, (pos) -> {
+				ra.setPositionAndGet(Math.round(pos[0]),Math.round(pos[1]),Math.round(pos[2])).add(label);
 			});
 
 			bdv.getViewerPanel().requestRepaint();
