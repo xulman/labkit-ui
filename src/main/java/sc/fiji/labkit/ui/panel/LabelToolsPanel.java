@@ -33,6 +33,7 @@ import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
+import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
 import net.miginfocom.swing.MigLayout;
 
@@ -79,6 +80,13 @@ public class LabelToolsPanel extends JPanel {
 		"<small>Keyboard shortcuts:<br>" +
 		"- Hold down the <b>Shift</b> key and <b>Left Click</b> on the image<br>" +
 		"  to select the label under the cursor.</small></html>";
+	private static final String SAMJ_LABEL_TOOL_TIP = "<html><b>Annotate using SAMJ</b><br>" +
+		"<small>Controls:<br>" +
+		"- <b>Hold down L</b> key, <b>Left Click and Drag</b> and <b>Release L</b> on the image<br>" +
+		"  to select a region inside which SAMJ will annotate, operating on the original image.<br>" +
+		"- <b>Hold down K</b> key, <b>Left Click and Drag</b> and <b>Release K</b> on the image<br>" +
+		"  to select a region inside which SAMJ will annotate, operating under the current contrast setting.<br>" +
+		"- <b>Double Left Click</b> on this icon to open SAMJ control window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
@@ -92,7 +100,7 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController)
+		PlanarModeController planarModeController, SamjFill samjFill)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
@@ -103,6 +111,14 @@ public class LabelToolsPanel extends JPanel {
 			"[]push"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 		initActionButtons();
+
+		if (samjFill != null) {
+			JToggleButton samjButton = addActionButton(SAMJ_LABEL_TOOL_TIP,
+					(isToggled) -> { if (isToggled) samjFill.samj.startPrompts(); else samjFill.samj.stopPrompts(); },
+					false,
+					"/images/samj.png");
+		}
+
 		add(initOptionPanel(), "wrap, growy");
 		add(initPlanarModeButton(), "growy");
 	}
