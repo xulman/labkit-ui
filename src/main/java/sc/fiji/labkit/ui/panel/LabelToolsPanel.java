@@ -117,6 +117,16 @@ public class LabelToolsPanel extends JPanel {
 					(isToggled) -> { if (isToggled) samjFill.samj.startPrompts(); else samjFill.samj.stopPrompts(); },
 					false,
 					"/images/samj.png");
+			//
+			final long[] prevClicked = new long[] {0}; //intentionally impossible time
+			samjButton.addActionListener( (l) -> {
+				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left click
+				long nowClicked = System.currentTimeMillis();
+				if ((nowClicked - prevClicked[0]) < 300) {
+					System.out.println("DOUBLE CLICK DETECTED");
+				}
+				prevClicked[0] = nowClicked;
+			} );
 		}
 
 		add(initOptionPanel(), "wrap, growy");
