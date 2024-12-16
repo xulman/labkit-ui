@@ -29,6 +29,7 @@
 
 package sc.fiji.labkit.ui.panel;
 
+import ai.nets.samj.gui.BDVedMainGUI;
 import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
@@ -40,7 +41,6 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 /**
  * Panel with the tool buttons for brush, flood fill, etc... Activates and
@@ -113,17 +113,19 @@ public class LabelToolsPanel extends JPanel {
 		initActionButtons();
 
 		if (samjFill != null) {
-			JToggleButton samjButton = addActionButton(SAMJ_LABEL_TOOL_TIP,
+			final JToggleButton samjButton = addActionButton(SAMJ_LABEL_TOOL_TIP,
 					(isToggled) -> { if (isToggled) samjFill.samj.startPrompts(); else samjFill.samj.stopPrompts(); },
 					false,
 					"/images/samj.png");
+			//
+			final BDVedMainGUI samjGui = new BDVedMainGUI(samjFill.samj, samjFill.getBdvName());
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
 			samjButton.addActionListener( (l) -> {
 				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left click
 				long nowClicked = System.currentTimeMillis();
 				if ((nowClicked - prevClicked[0]) < 300) {
-					System.out.println("DOUBLE CLICK DETECTED");
+					samjGui.showWindow();
 				}
 				prevClicked[0] = nowClicked;
 			} );
