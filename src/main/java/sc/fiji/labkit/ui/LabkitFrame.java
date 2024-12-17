@@ -94,9 +94,9 @@ public class LabkitFrame {
 	private LabkitFrame(final SegmentationModel model,
 		final String title)
 	{
+		setTitle(title);
 		SegmentationComponent segmentationComponent = initSegmentationComponent(
 			model);
-		setTitle(title);
 		frame.setIconImage(getImageJIcon(model.context()));
 		frame.setJMenuBar(new MenuBar(segmentationComponent::createMenu));
 		frame.setVisible(true);
