@@ -36,6 +36,10 @@ public class SamjFill {
 		this.model = model;
 	}
 
+	public String getBdvName() {
+		return bdv.getViewerPanel().getName();
+	}
+
 	public final BdvPrompts<?,FloatType> samj;
 	final BdvHandle bdv;
 	final LabelingModel model;
