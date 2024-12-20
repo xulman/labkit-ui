@@ -45,6 +45,7 @@ import sc.fiji.labkit.ui.models.ImageLabelingModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
+import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -126,6 +127,9 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
 			floodFillController, selectLabelController, planarModeController);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
+
+		System.out.println("SAMJ avail: "+LabkitUtils.isSamjAvailable());
+
 		return toolsPanel;
 	}
 
