@@ -30,9 +30,14 @@ public class SamjFill {
 				  false);
 		samj.addPromptsProcessor( new SamjResponder<>( new SAM2Tiny() ) );
 		samj.addPolygonsConsumer( this.new SamjLabeller() );
+		samj.stopPrompts(); //in Labkit, it should start disabled by default
 
 		this.bdv = bdv;
 		this.model = model;
+	}
+
+	public String getBdvName() {
+		return bdv.getViewerPanel().getName();
 	}
 
 	public final BdvPrompts<?,FloatType> samj;
