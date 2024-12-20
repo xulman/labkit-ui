@@ -31,6 +31,7 @@ package sc.fiji.labkit.ui;
 
 import io.scif.services.DatasetIOService;
 import net.imagej.Dataset;
+import org.scijava.LocalDetachedContext;
 import org.scijava.ui.ApplicationFrame;
 import org.scijava.ui.UIService;
 import org.scijava.widget.UIComponent;
@@ -80,6 +81,7 @@ public class LabkitFrame {
 	public static LabkitFrame showForImage(Context context,
 		final InputImage inputImage)
 	{
+		LocalDetachedContext.startWithThisContext(context);
 		final SegmentationModel model = new DefaultSegmentationModel(context, inputImage);
 		model.imageLabelingModel().labeling().set(InitialLabeling.initialLabeling(context, inputImage));
 		return show(model, inputImage.imageForSegmentation().getName());
