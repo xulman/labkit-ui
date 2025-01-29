@@ -92,6 +92,7 @@ public class LabelToolsPanel extends JPanel {
 	private final LabelBrushController brushController;
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
+	private final SamjFill samjFillController;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -106,6 +107,7 @@ public class LabelToolsPanel extends JPanel {
 		this.floodFillController = floodFillController;
 		this.selectLabelController = selectLabelController;
 		this.planarModeController = planarModeController;
+		this.samjFillController = samjFill;
 
 		setLayout(new MigLayout("flowy, insets 0, gap 4pt, top", "[][][][][]",
 			"[]push"));
@@ -247,6 +249,7 @@ public class LabelToolsPanel extends JPanel {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
+			samjFillController.setOverlapping(overlapping);
 		});
 		return checkBox;
 	}
