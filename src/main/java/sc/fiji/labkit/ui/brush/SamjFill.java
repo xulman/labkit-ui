@@ -58,10 +58,17 @@ public class SamjFill {
 			// the underlying image (which is in its native coords) and will fire
 			// the provided lambda at every image pixel inside the polygon
 			rasterizer.rasterize(polygon,globalToImageT, (pos) -> {
-				ra.setPositionAndGet(Math.round(pos[0]),Math.round(pos[1]),Math.round(pos[2])).add(label);
+				LabelingType<Label> px = ra.setPositionAndGet(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
+				if (px.isEmpty() || allowOverlappingLabels) px.add(label);
 			});
 
 			bdv.getViewerPanel().requestRepaint();
 		}
+	}
+
+	boolean allowOverlappingLabels = false;
+
+	public void setOverlapping(boolean newState) {
+		this.allowOverlappingLabels = newState;
 	}
 }
