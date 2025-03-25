@@ -59,6 +59,7 @@ public class SamjFill {
 			System.out.println("Labkit: Detected 3D image, enabling 'perSlices' SAMJ annotations.");
 			samj.installRepeatPromptOnNextSliceBehaviour();
 			samj.installPerSlicesTrackingPromptBehaviour(new LabelPresenceIndicatorAtGlobalCoord());
+			samj.installSideViewsBehaviour();
 		}
 
 		this.bdv = bdv;
