@@ -82,11 +82,9 @@ public class LabelToolsPanel extends JPanel {
 		"  to select the label under the cursor.</small></html>";
 	private static final String SAMJ_LABEL_TOOL_TIP = "<html><b>Annotate using SAMJ</b><br>" +
 		"<small>Controls:<br>" +
-		"- <b>Hold down L</b> key, <b>Left Click and Drag</b> and <b>Release L</b> on the image<br>" +
-		"  to select a region inside which SAMJ will annotate, operating on the original image.<br>" +
-		"- <b>Hold down K</b> key, <b>Left Click and Drag</b> and <b>Release K</b> on the image<br>" +
-		"  to select a region inside which SAMJ will annotate, operating under the current contrast setting.<br>" +
-		"- <b>Double Left Click</b> on this icon to open SAMJ control window.</small></html>";
+		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
+		"&nbsp where SAMJ will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
+		"- <b>Double Left Click this icon</b> to open SAMJ controls and tutorials window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
