@@ -86,7 +86,7 @@ public class LabkitFrame {
 	{
 		if (context == null)
 			context = SingletonContext.getInstance();
-		LocalDetachedContext.startWithThisContext(context);
+		LocalDetachedContext.memorizeThisContext(context);
 		final SegmentationModel model = new DefaultSegmentationModel(context, inputImage);
 		model.imageLabelingModel().labeling().set(InitialLabeling.initialLabeling(context, inputImage));
 		return show(model, inputImage.imageForSegmentation().getName());
