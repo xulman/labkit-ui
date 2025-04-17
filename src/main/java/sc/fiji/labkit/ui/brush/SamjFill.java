@@ -1,6 +1,6 @@
 package sc.fiji.labkit.ui.brush;
 
-import ai.nets.samj.bdv.promptresponders.SamjResponder;
+import ai.nets.samj.communication.model.SAMModel;
 import ai.nets.samj.util.AvailableNetworksFactory;
 import ai.nets.samj.util.PlanarShapesRasterizer;
 import bdv.interactive.prompts.BdvPrompts;
@@ -18,7 +18,6 @@ import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class SamjFill {
@@ -33,12 +32,9 @@ public class SamjFill {
 				  "SAMJ-accelerated annotator",
 				  new FloatType(),
 				  false);
-		final AvailableNetworksFactory netFactory = new AvailableNetworksFactory();
-		final List<String> availableModels = netFactory.availableModels();
-		if (availableModels.size() > 0) {
-			//grab the first available network
-			samj.addPromptsProcessor(new SamjResponder<>( netFactory.getModel(availableModels.get(0)) ));
-			availableModels.forEach(netName -> System.out.println("Labkit: Detected available SAMJ: "+netName));
+
+		final SAMModel net = AvailableNetworksFactory.reportAndChooseFirstAvailable(samj, s -> System.out.println("Labkit: " + s));
+		if (net != null) {
 			System.out.println("Labkit: Using initially the first-one listed. Change it by double-clicking the SAMJ icon in Labkit.");
 		} else {
 			samj.addPromptsProcessor((BdvPrompts.PromptsProcessor)(prompt, hasViewChangedSinceBefore) -> {
