@@ -130,9 +130,10 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
 		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
+		final FakeSegFiller fakeFill = LabkitUtils.isSamjAvailable() ? new FakeSegFiller(bdvHandle, model) : null;
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, samjFill);
+			floodFillController, selectLabelController, planarModeController, samjFill, fakeFill);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
