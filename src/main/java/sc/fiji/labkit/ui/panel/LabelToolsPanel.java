@@ -36,6 +36,8 @@ import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
 import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
+import sc.fiji.labkit.ui.brush.AbstractSegFill;
+import sc.fiji.labkit.ui.brush.FakeSegFiller;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -91,6 +93,7 @@ public class LabelToolsPanel extends JPanel {
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
 	private final SamjFill samjFillController;
+	private final AbstractSegFill segFillController;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -99,13 +102,14 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, SamjFill samjFill)
+		PlanarModeController planarModeController, SamjFill samjFill, FakeSegFiller fakeFill)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
 		this.selectLabelController = selectLabelController;
 		this.planarModeController = planarModeController;
 		this.samjFillController = samjFill;
+		this.segFillController = fakeFill;
 
 		setLayout(new MigLayout("flowy, insets 0, gap 4pt, top", "[][][][][]",
 			"[]push"));
@@ -129,6 +133,15 @@ public class LabelToolsPanel extends JPanel {
 				}
 				prevClicked[0] = nowClicked;
 			} );
+		}
+
+		if (fakeFill != null) {
+			final JToggleButton segButton = addActionButton("SEG",
+					(isToggled) -> { if (isToggled) fakeFill.segmenter.startPrompts(); else fakeFill.segmenter.stopPrompts(); },
+			false,
+			"/images/samj.png");
+
+			//TODO: add some behaviour for the button, e.g. dbl-click configuration dialog
 		}
 
 		add(initOptionPanel(), "wrap, growy");
@@ -248,6 +261,7 @@ public class LabelToolsPanel extends JPanel {
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
 			samjFillController.setOverlapping(overlapping);
+			segFillController.setOverlapping(overlapping);
 		});
 		return checkBox;
 	}
