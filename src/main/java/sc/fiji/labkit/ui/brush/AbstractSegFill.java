@@ -60,8 +60,10 @@ public abstract class AbstractSegFill {
 			while (smlc.hasNext()) {
 				if (smlc.next().get() > 0) {
 					smlc.localize(pos);
+					//System.out.println("Found seg res at screen coord: "+pos[0]+","+pos[1]+","+pos[2]);
 					pos[2] = 0.0;
 					auxTransform.apply(pos, pos);
+					//System.out.println("     seg res at raw img coord: "+pos[0]+","+pos[1]+","+pos[2]);
 
 					LabelingType<Label> px = ra.setPositionAndGet(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
 					if (px.isEmpty() || allowOverlappingLabels) px.add(label);

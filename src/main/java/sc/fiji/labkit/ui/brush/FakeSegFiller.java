@@ -20,8 +20,11 @@ public class FakeSegFiller extends AbstractSegFill {
 
     @Override
     void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedByteType> fillThisMask) {
-        //let's fill a small rectangle inside the prompt
+        //System.out.println("FakeSegmenter: Working on input image "+prompt.getViewImage2D());
+        //System.out.println("FakeSegmenter: Working on output image "+fillThisMask);
+        //System.out.println("FakeSegmenter: Considering local BBox: "+prompt.getBbox2D());
 
+        //let's fill a small rectangle inside the prompt
         Interval srcI = prompt.getBbox2D();
         long xOneThird = (srcI.max(0) - srcI.min(0) + 1) / 3;
         long yOneThird = (srcI.max(1) - srcI.min(1) + 1) / 3;
