@@ -140,11 +140,22 @@ public class LabkitUtils {
 	}
 
 	public static boolean isSamjAvailable() {
-		if (isClassAvailable("bdv.interactive.prompts.BdvPrompts")) {
+		if (isClassAvailable("ai.nets.samj.models.Sam2")) {
 			return true;
 		} else {
 			System.out.println("--------------------------------------------------------------------------------------------");
 			System.out.println("NOTICE: Labkit could use AI-labelling helper, but the SAMJ Fiji update site must be enabled.");
+			System.out.println("--------------------------------------------------------------------------------------------");
+			return false;
+		}
+	}
+
+	public static boolean isBdvPromptingAvailable() {
+		if (isClassAvailable("bdv.interactive.prompts.BdvPrompts")) {
+			return true;
+		} else {
+			System.out.println("--------------------------------------------------------------------------------------------");
+			System.out.println("NOTICE: Labkit could use AI-labelling client-server helper, but the QQQQ Fiji update site must be enabled.");
 			System.out.println("--------------------------------------------------------------------------------------------");
 			return false;
 		}
