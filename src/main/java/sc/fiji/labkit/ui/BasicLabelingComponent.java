@@ -49,7 +49,9 @@ import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A swing UI component that shows a Big Data Viewer panel and a tool bar for
@@ -130,10 +132,17 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
 		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
-		final FakeSegFiller fakeFill = LabkitUtils.isBdvPromptingAvailable() ? new FakeSegFiller(bdvHandle, model) : null;
+		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
+		if (remoteSegFill != null) {
+			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:7999") );
+			remoteSegFill.setSameMethodOnAllServers("cellpose.mixed");
+
+			System.out.println("reporting remote servers:");
+			remoteSegFill.getPoolOfServers().forEach(s -> System.out.println("-> "+s));
+		}
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, samjFill, fakeFill);
+			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
