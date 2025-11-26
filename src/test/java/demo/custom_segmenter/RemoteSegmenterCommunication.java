@@ -39,7 +39,7 @@ public class RemoteSegmenterCommunication {
 		return methods.available_network_names;
 	}
 
-	public static void testRoundTripTime(final String serverURL) throws IOException {
+	public static void testRoundTripTime(final String serverURL) throws IOException, InterruptedException {
 		final String serverCMD = "/connection_test/data_transfer_times";
 		URL url = new URL(serverURL+serverCMD);
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
@@ -62,14 +62,21 @@ public class RemoteSegmenterCommunication {
 		int inBufPos = 0;
 
 		InputStream inputStream = comm.getInputStream();
-		while (inputStream.available() > 0) {
-			final int incomingSize = inputStream.available();
-			//System.out.println("receiving now: "+incomingSize);
+		while (inBufPos < inBuf.length) {
+			//NB: note that if, for whatever reason, the expected bytes would not
+			//    arrive (and the while-loop may thus seem to be iterating forever),
+			//    the busyWait_() below will detect a prolonged communication delay
+			//    and would throw an exception, which will exit this while-loop
+			busyWaitOrThrowOnTimeOut(inputStream);
 
-			inputStream.read(inBuf, inBufPos, incomingSize);
-			inBufPos += incomingSize;
-			//System.out.println("loading stopped at: "+inBufPos);
+			//NB: 2nd param says offset in the 1st param from which to start saving
+			//NB: 3rd param says how much we're willing to accept now
+			int actualArrivedSize = inputStream.read(inBuf, inBufPos, inBuf.length - inBufPos);
+			inBufPos += actualArrivedSize;
+			System.out.println("received now: "+actualArrivedSize);
+			System.out.println("filling stopped at: "+inBufPos);
 		}
+		inputStream.close();
 
 		long stopMillis = System.currentTimeMillis();
 
@@ -100,5 +107,23 @@ public class RemoteSegmenterCommunication {
 			System.out.println("GOT AN ERROR:");
 			System.out.println(e.getMessage());
 		}
+	}
+
+
+	private static void busyWaitOrThrowOnTimeOut(final InputStream dataSrc)
+			throws IOException, InterruptedException {
+		int tries = 0;
+		long waitTime = 20;
+
+		while (dataSrc.available() == 0 && tries < 10) {
+			//System.out.println((tries+1)+". waiting for "+waitTime);
+			Thread.sleep(waitTime);
+			waitTime += 0.84*waitTime; //...nearly doubling-waiting time
+			++tries;
+		}
+
+		//System.out.println("Done with the waiting....");
+		if (dataSrc.available() == 0)
+			throw new IOException("Gave up waiting for incoming data");
 	}
 }
