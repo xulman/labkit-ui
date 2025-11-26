@@ -26,7 +26,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			try {
 				servers.add( new Remote2dSegFiller(url) );
 			} catch (IOException e) {
-				System.out.println("ERROR talking to "+url+":\n"+e.getMessage());
+				System.out.println("ERROR: talking to "+url+":\n"+e.getMessage());
 			}
 		});
 	}
@@ -45,7 +45,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			try {
 				server.updateAvailableMethods();
 			} catch (IOException e) {
-				System.out.println("ERROR updating methods at "+server.getUrl()+":\n"+e.getMessage());
+				System.out.println("ERROR: updating methods at "+server.getUrl()+":\n"+e.getMessage());
 			}
 		});
 	}
@@ -62,7 +62,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			}
 			//NB: selects "nothing" (because of j=-1) if 'method' not found among the server's available ones
 			server.selectMethod(j);
-			if (j == -1) System.out.println("ERROR method >>"+method+"<< not available at "+server.getUrl());
+			if (j == -1) System.out.println("ERROR: requesting >>"+method+" not available at server "+server.getUrl());
 		});
 	}
 

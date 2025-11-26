@@ -47,8 +47,13 @@ public class Remote2dSegFiller {
 		try {
 			RemoteSegmenterCommunications.runRemoteSegmentation2D(url, inputImg, maskImg, selectedMethod);
 		} catch (IOException e) {
-			System.out.println("ERROR segmenting at "+url+" with method >>"+selectedMethod+"<<:\n"+e.getMessage());
+			System.out.println("ERROR: "+this+":\n"+e.getMessage());
 			Remote2dSegFillers.zeroMask(maskImg);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "Remote2dSeg at "+url+" with method >>"+selectedMethod+"<<";
 	}
 }
