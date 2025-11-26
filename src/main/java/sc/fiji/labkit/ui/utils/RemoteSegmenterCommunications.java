@@ -2,7 +2,6 @@ package sc.fiji.labkit.ui.utils;
 
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
-import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
@@ -24,19 +23,12 @@ public class RemoteSegmenterCommunications {
 	 * @param serverURL Make sure the URL starts with 'http://'.
 	 * @return The list, or null if there was any problem.
 	 */
-	public static List<String> listAvailableNetworks(final String serverURL) {
-		final ObjectMapper mapper = new ObjectMapper();
-		ListAvailableMethods methods = null;
-		try {
-			methods = mapper.readValue(
-					new URL(serverURL+"/segmentation_2D/list_available_methods"),
-					ListAvailableMethods.class );
-		} catch (IOException e) {
-			System.out.println("SEGMENTATION SERVER COMMUNICATION ERROR: "+e.getMessage());
-			return Collections.emptyList();
-		}
+	public static List<String> listAvailableNetworks(final String serverURL)
+			throws IOException {
+		ListAvailableMethods methods = new ObjectMapper().readValue(
+				new URL(serverURL+"/segmentation_2D/list_available_methods"),
+				ListAvailableMethods.class );
 		if (methods == null || !methods.status.equals("OK")) return Collections.emptyList();
-
 		return methods.available_network_names;
 	}
 
@@ -80,7 +72,7 @@ public class RemoteSegmenterCommunications {
 	}
 
 
-	public static <IT extends RealType<IT> & NativeType<IT>, MT extends IntegerType<MT> & NativeType<MT>>
+	public static <IT extends RealType<IT>, MT extends IntegerType<MT>>
 	void runRemoteSegmentation2D(
 			final String serverURL,
 			final Img<IT> inputImg,
