@@ -48,6 +48,8 @@ public class RemoteSegmenterCommunication {
 		comm.setDoOutput(true);
 		comm.connect();
 
+		long startMillis = System.currentTimeMillis();
+
 		final int BUF_SIZE = 102400;
 		byte[] outBuf = new byte[BUF_SIZE];
 		new Random().nextBytes(outBuf);
@@ -62,18 +64,30 @@ public class RemoteSegmenterCommunication {
 		InputStream inputStream = comm.getInputStream();
 		while (inputStream.available() > 0) {
 			final int incomingSize = inputStream.available();
-			System.out.println("receiving now: "+incomingSize);
+			//System.out.println("receiving now: "+incomingSize);
 
 			inputStream.read(inBuf, inBufPos, incomingSize);
 			inBufPos += incomingSize;
-			System.out.println("loading stopped at: "+inBufPos);
+			//System.out.println("loading stopped at: "+inBufPos);
+		}
+
+		long stopMillis = System.currentTimeMillis();
+
+		if (inBufPos != inBuf.length) {
+			System.out.println("Only "+inBufPos+" bytes came back, expected was "+inBuf.length+" bytes.");
+		} else {
+			System.out.println("All "+inBufPos+" bytes came back, good.");
 		}
 
 		int diffsCnt = 0;
 		for (int i = 0; i < inBuf.length; ++i) {
 			diffsCnt += (inBuf[i] != outBuf[i]) ? 1 : 0;
 		}
-		System.out.println("Incoming buffer differs "+diffsCnt+" positions.");
+		System.out.println("Incoming buffer differs at "+diffsCnt+" positions.");
+
+		final float timeNeededSeconds = (stopMillis-startMillis) /1000.0f;
+		System.out.println("Both up and down transfers alone took "+timeNeededSeconds+" seconds.");
+		System.out.println("...that's "+(2.0f*inBufPos/(timeNeededSeconds*1024.f))+" kilobytes/second transfer rate.");
 	}
 
 
