@@ -98,6 +98,45 @@ public class RemoteSegmenterCommunication {
 	}
 
 
+	public static void testRoundTripTime_NIO(final String serverURL) throws IOException, InterruptedException {
+		final String serverCMD = "/connection_test/data_transfer_times";
+		URL url = new URL(serverURL+serverCMD);
+		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
+		comm.setRequestMethod("POST");
+		comm.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+		comm.setDoOutput(true);
+		comm.connect();
+
+		long startMillis = System.currentTimeMillis();
+
+		final int BUF_SIZE = 102400;
+		byte[] outBuf = new byte[BUF_SIZE];
+		new Random().nextBytes(outBuf);
+
+		try (DataOutputStream ostream = new DataOutputStream( new BufferedOutputStream( comm.getOutputStream(), 1 << 20 ) )) {
+			for (byte b : outBuf) ostream.writeByte( b );
+		}
+
+		byte[] inBuf = new byte[BUF_SIZE];
+
+		try (DataInputStream istream = new DataInputStream( new BufferedInputStream( comm.getInputStream(), 1 << 20 ) )) {
+			for (int i = 0; i < inBuf.length; ++i) inBuf[i] = istream.readByte();
+		}
+
+		long stopMillis = System.currentTimeMillis();
+
+		int diffsCnt = 0;
+		for (int i = 0; i < inBuf.length; ++i) {
+			diffsCnt += (inBuf[i] != outBuf[i]) ? 1 : 0;
+		}
+		System.out.println("Incoming buffer differs at "+diffsCnt+" positions.");
+
+		final float timeNeededSeconds = (stopMillis-startMillis) /1000.0f;
+		System.out.println("Both up and down transfers alone took "+timeNeededSeconds+" seconds.");
+		System.out.println("...that's "+(2.0f*BUF_SIZE/(timeNeededSeconds*1024.f))+" kilobytes/second transfer rate.");
+	}
+
+
 	public static void main(String[] args) {
 		final String serverURL = "http://localhost:8000";
 
