@@ -1,16 +1,21 @@
 package demo.custom_segmenter;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.imglib2.Cursor;
+import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 
 public class RemoteSegmenterCommunication {
 
@@ -134,6 +139,58 @@ public class RemoteSegmenterCommunication {
 		final float timeNeededSeconds = (stopMillis-startMillis) /1000.0f;
 		System.out.println("Both up and down transfers alone took "+timeNeededSeconds+" seconds.");
 		System.out.println("...that's "+(2.0f*BUF_SIZE/(timeNeededSeconds*1024.f))+" kilobytes/second transfer rate.");
+	}
+
+
+	public static <IT extends RealType<IT> & NativeType<IT>, MT extends IntegerType<MT> & NativeType<MT>>
+	void runRemoteSegmentation2D(
+			final String serverURL,
+			final Img<IT> inputImg,
+			final Img<MT> maskImg,
+			final String methodName) throws IOException, InterruptedException {
+		if (inputImg.numDimensions() < 2 || maskImg.numDimensions() < 2 ||
+			inputImg.dimension(0) != maskImg.dimension(0) ||
+			inputImg.dimension(1) != maskImg.dimension(1)) {
+			throw new IllegalArgumentException("Input and mask images must be at least two-dimensional"+
+					" and the same in their first two dinenbsions; got "+inputImg.dimensionsAsLongArray()+
+					" and "+maskImg.dimensionsAsLongArray());
+		}
+
+		final String serverCMD = "/segmentation_2D/on_posted_stream_of/"+
+				inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/use/"+methodName;
+		URL url = new URL(serverURL+serverCMD);
+		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
+		comm.setRequestMethod("POST");
+		comm.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+		comm.setDoOutput(true);
+		comm.connect();
+
+		long startMillis = System.currentTimeMillis();
+
+/*
+		final long maxBufferSize = inputImg.dimension(0) * inputImg.dimension(1) * Float.BYTES;
+		final long optimalBufferSize = 256*1024 * Float.BYTES;  // 256KB*4B buffer
+		final ByteBuffer buffer = ByteBuffer.allocate( (int)Math.min(optimalBufferSize,maxBufferSize) );
+				//.order(ByteOrder.BIG_ENDIAN);
+*/
+
+		//TODO not using any buffer
+		try (DataOutputStream ostream = new DataOutputStream( new BufferedOutputStream( comm.getOutputStream(), 1 << 20 ) )) {
+			Cursor<IT> c = Views.flatIterable(inputImg).cursor();
+			while (c.hasNext()) ostream.writeFloat( c.next().getRealFloat() );
+			//Views.flatIterable(inputImg).forEach(f -> ostream.writeFloat(f.getRealFloat()));
+		}
+
+		try (DataInputStream istream = new DataInputStream( new BufferedInputStream( comm.getInputStream(), 1 << 20 ) )) {
+			Cursor<MT> c = Views.flatIterable(maskImg).cursor();
+			while (c.hasNext()) c.next().setReal( istream.readUnsignedShort() );
+		}
+
+		long stopMillis = System.currentTimeMillis();
+		final float timeNeededSeconds = (stopMillis-startMillis) /1000.0f;
+		System.out.println("Both up and down transfers alone took "+timeNeededSeconds+" seconds.");
+		final long pixelsCnt = inputImg.dimension(0) * inputImg.dimension(1);
+		System.out.println("...that's "+(6.0f*pixelsCnt/(timeNeededSeconds*1024.f))+" kilobytes/second transfer rate.");
 	}
 
 
