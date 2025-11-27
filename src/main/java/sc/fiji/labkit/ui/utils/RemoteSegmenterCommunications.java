@@ -111,7 +111,7 @@ public class RemoteSegmenterCommunications {
 
 		try (DataInputStream istream = new DataInputStream( new BufferedInputStream( comm.getInputStream(), 1 << 20 ) )) {
 			final ByteBuffer bb = ByteBuffer.allocate((int)(inputImg.dimension(0)*inputImg.dimension(1))*Short.BYTES).order(ByteOrder.LITTLE_ENDIAN);
-			istream.read(bb.array());
+			istream.readFully(bb.array());
 			Cursor<MT> c = Views.flatIterable(maskImg).cursor();
 			while (c.hasNext()) c.next().setInteger( bb.getShort() );
 			//while (c.hasNext()) c.next().setInteger( istream.readUnsignedShort() );
