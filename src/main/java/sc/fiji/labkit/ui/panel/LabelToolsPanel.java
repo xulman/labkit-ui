@@ -259,8 +259,8 @@ public class LabelToolsPanel extends JPanel {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
-			samjFillController.setOverlapping(overlapping);
-			segFillController.setOverlapping(overlapping);
+			if (samjFillController != null) samjFillController.setOverlapping(overlapping);
+			if (segFillController != null) segFillController.setOverlapping(overlapping);
 		});
 		return checkBox;
 	}
