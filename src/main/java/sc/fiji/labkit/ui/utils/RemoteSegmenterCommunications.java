@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -99,14 +101,20 @@ public class RemoteSegmenterCommunications {
 		long startMillis = System.currentTimeMillis();
 
 		try (DataOutputStream ostream = new DataOutputStream( new BufferedOutputStream( comm.getOutputStream(), 1 << 20 ) )) {
+			final ByteBuffer bb = ByteBuffer.allocate((int)(inputImg.dimension(0)*inputImg.dimension(1))*Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
 			Cursor<IT> c = Views.flatIterable(inputImg).cursor();
-			while (c.hasNext()) ostream.writeFloat( c.next().getRealFloat() );
+			while (c.hasNext()) bb.putFloat( c.next().getRealFloat() );
+			ostream.write(bb.array());
+			//while (c.hasNext()) ostream.writeFloat( c.next().getRealFloat() );
 			ostream.flush();
 		}
 
 		try (DataInputStream istream = new DataInputStream( new BufferedInputStream( comm.getInputStream(), 1 << 20 ) )) {
+			final ByteBuffer bb = ByteBuffer.allocate((int)(inputImg.dimension(0)*inputImg.dimension(1))*Short.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+			istream.read(bb.array());
 			Cursor<MT> c = Views.flatIterable(maskImg).cursor();
-			while (c.hasNext()) c.next().setReal( istream.readUnsignedShort() );
+			while (c.hasNext()) c.next().setInteger( bb.getShort() );
+			//while (c.hasNext()) c.next().setInteger( istream.readUnsignedShort() );
 		}
 
 		long stopMillis = System.currentTimeMillis();
