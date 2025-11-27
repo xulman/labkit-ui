@@ -21,9 +21,16 @@ public class Remote2dSegFiller {
 
 	public void updateAvailableMethods() throws IOException {
 		lastSeenAvailableMethods.clear();
-		lastSeenAvailableMethods.addAll( RemoteSegmenterCommunications.listAvailableNetworks(url) );
+		try {
+			lastSeenAvailableMethods.addAll(RemoteSegmenterCommunications.listAvailableNetworks(url));
+		}
+		catch (IOException e) {
+			isAlive = false;
+			throw new IOException(e);
+		}
 		selectedMethod = !lastSeenAvailableMethods.isEmpty() ?
 				lastSeenAvailableMethods.get(0) : NO_METHOD_SELECTED;
+		isAlive = true;
 	}
 
 	public List<String> reportAvailableMethods() {
@@ -32,6 +39,11 @@ public class Remote2dSegFiller {
 
 	private final String url;
 	private final List<String> lastSeenAvailableMethods = new ArrayList<>(0);
+
+	private boolean isAlive = false;
+	public void setIsAlive() { isAlive = true; }
+	public void setIsNotAlive() { isAlive = false; }
+	public boolean isAlive() { return isAlive; }
 
 	private String selectedMethod;
 	public final String NO_METHOD_SELECTED = "No model available";
@@ -54,6 +66,6 @@ public class Remote2dSegFiller {
 
 	@Override
 	public String toString() {
-		return "Remote2dSeg at "+url+" with method >>"+selectedMethod+"<<";
+		return "Remote2dSeg at "+url+" with method >>"+selectedMethod+"<< (is live: "+isAlive+")";
 	}
 }
