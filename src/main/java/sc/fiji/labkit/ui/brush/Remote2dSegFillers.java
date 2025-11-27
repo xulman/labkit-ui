@@ -65,7 +65,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			}
 			//NB: selects "nothing" (because of j=-1) if 'method' not found among the server's available ones
 			server.selectMethod(j);
-			if (j == -1) System.out.println("ERROR: requesting >>"+method+" not available at server "+server.getUrl());
+			if (j == -1) System.out.println("ERROR: requesting >>"+method+"<< not available at server "+server.getUrl());
 		});
 	}
 
