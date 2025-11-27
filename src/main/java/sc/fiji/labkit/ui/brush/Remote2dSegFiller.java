@@ -53,6 +53,9 @@ public class Remote2dSegFiller {
 				NO_METHOD_SELECTED : lastSeenAvailableMethods.get(index);
 		return selectedMethod;
 	}
+	public String getSelectedMethod() {
+		return selectedMethod;
+	}
 
 	public <IT extends RealType<IT>, MT extends IntegerType<MT>>
 	void segment(final Img<IT> inputImg, final Img<MT> maskImg) {
