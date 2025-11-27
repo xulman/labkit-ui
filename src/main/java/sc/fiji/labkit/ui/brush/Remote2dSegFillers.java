@@ -75,7 +75,6 @@ public class Remote2dSegFillers extends AbstractSegFill {
 		} else {
 			//TODO: round robin!!!
 			servers.get(0).segment(prompt.getViewImage2D(), fillThisMask);
-			ImageJFunctions.show(fillThisMask);
 		}
 	}
 
