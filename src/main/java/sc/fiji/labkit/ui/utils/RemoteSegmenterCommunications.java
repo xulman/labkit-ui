@@ -100,6 +100,7 @@ public class RemoteSegmenterCommunications {
 		try (DataOutputStream ostream = new DataOutputStream( new BufferedOutputStream( comm.getOutputStream(), 1 << 20 ) )) {
 			Cursor<IT> c = Views.flatIterable(inputImg).cursor();
 			while (c.hasNext()) ostream.writeFloat( c.next().getRealFloat() );
+			ostream.flush();
 		}
 
 		try (DataInputStream istream = new DataInputStream( new BufferedInputStream( comm.getInputStream(), 1 << 20 ) )) {
