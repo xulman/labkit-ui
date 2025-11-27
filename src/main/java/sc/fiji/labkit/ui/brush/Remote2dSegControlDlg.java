@@ -32,14 +32,17 @@ public class Remote2dSegControlDlg extends JPanel {
 
 		// Single choice list with 5 visible lines and vertical scrollbar
 		listModel = new DefaultListModel<>();
-		for (int i = 1; i <= 10; i++) {
-			listModel.addElement("Item " + i);
-		}
-		singleChoiceList = new JList<>(listModel);
-		singleChoiceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		singleChoiceList.setVisibleRowCount(5);
+		serverMethodsList = new JList<>(listModel);
+		serverMethodsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		serverMethodsList.setVisibleRowCount(5);
+		repaintServerMethodsList();
+		serverMethodsList.addListSelectionListener(s -> {
+			if (!s.getValueIsAdjusting() && serverMethodsList.getSelectedValue() != null) {
+				getCurrentlySelectedServer().selectMethod(serverMethodsList.getSelectedIndex());
+			}
+		});
 
-		JScrollPane scrollPane = new JScrollPane(singleChoiceList);
+		JScrollPane scrollPane = new JScrollPane(serverMethodsList);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		add(scrollPane, BorderLayout.CENTER);
 
@@ -80,7 +83,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	private final Remote2dSegFillers servers;
 
 	private JComboBox<String> serverListDropdown;
-	private JList<String> singleChoiceList;
+	private JList<String> serverMethodsList;
 	private DefaultListModel<String> listModel;
 	private JCheckBox checkBox1;
 	private JCheckBox checkBox2;
@@ -92,6 +95,26 @@ public class Remote2dSegControlDlg extends JPanel {
 		servers.getPoolOfServers().forEach(server -> {
 			serverListDropdown.addItem(server.getUrl()+(server.isAlive() ? "":" (offline)"));
 		});
+	}
+
+	public Remote2dSegFiller getCurrentlySelectedServer() {
+		return servers.getPoolOfServers().get(serverListDropdown.getSelectedIndex());
+	}
+	public String getCurrentlySelectedMethod() {
+		return (String)serverListDropdown.getSelectedItem();
+	}
+
+	public void repaintServerMethodsList() {
+		final Remote2dSegFiller server = getCurrentlySelectedServer();
+		final String serverMethod = server.getSelectedMethod();
+		listModel.removeAllElements();
+		server.reportAvailableMethods().forEach(m -> {
+			listModel.addElement(m);
+			if (serverMethod.equals(m)) {
+				serverMethodsList.setSelectedIndex(listModel.size()-1);
+			}
+		});
+		serverMethodsList.setEnabled( server.isAlive() );
 	}
 
 /*
