@@ -3,6 +3,7 @@ package sc.fiji.labkit.ui.brush;
 import bdv.interactive.prompts.planarshapes.PlanarRectangleIn3D;
 import bdv.util.BdvHandle;
 import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -74,6 +75,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 		} else {
 			//TODO: round robin!!!
 			servers.get(0).segment(prompt.getViewImage2D(), fillThisMask);
+			ImageJFunctions.show(fillThisMask);
 		}
 	}
 

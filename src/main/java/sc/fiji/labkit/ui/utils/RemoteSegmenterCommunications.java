@@ -87,7 +87,8 @@ public class RemoteSegmenterCommunications {
 		}
 
 		final String serverCMD = "/segmentation_2D/on_posted_stream_of/"+
-				inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/use/"+methodName;
+				//inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/use/"+methodName;
+				inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/normalize_it_then_use/"+methodName;
 		URL url = new URL(serverURL+serverCMD);
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
 		comm.setRequestMethod("POST");
