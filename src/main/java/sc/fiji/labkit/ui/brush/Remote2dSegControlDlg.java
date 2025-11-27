@@ -2,6 +2,7 @@ package sc.fiji.labkit.ui.brush;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 
 public class Remote2dSegControlDlg extends JPanel {
 	final JFrame frame = new JFrame("Remote 2D Segmenters Controller");
@@ -29,6 +30,11 @@ public class Remote2dSegControlDlg extends JPanel {
 		serverListDropdown = new JComboBox<>();
 		updateServerListDropdown();
 		add(serverListDropdown, BorderLayout.NORTH);
+		serverListDropdown.addItemListener(item -> {
+			if (item.getStateChange() == ItemEvent.SELECTED) {
+				repaintServerMethodsList();
+			}
+		});
 
 		// Single choice list with 5 visible lines and vertical scrollbar
 		listModel = new DefaultListModel<>();
