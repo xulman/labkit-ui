@@ -26,8 +26,9 @@ public class Remote2dSegControlDlg extends JPanel {
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// Dropdown at the top
-		dropdown = new JComboBox<>(new String[]{"Option 1", "Option 2", "Option 3"});
-		add(dropdown, BorderLayout.NORTH);
+		serverListDropdown = new JComboBox<>();
+		updateServerListDropdown();
+		add(serverListDropdown, BorderLayout.NORTH);
 
 		// Single choice list with 5 visible lines and vertical scrollbar
 		listModel = new DefaultListModel<>();
@@ -78,13 +79,20 @@ public class Remote2dSegControlDlg extends JPanel {
 
 	private final Remote2dSegFillers servers;
 
-	private JComboBox<String> dropdown;
+	private JComboBox<String> serverListDropdown;
 	private JList<String> singleChoiceList;
 	private DefaultListModel<String> listModel;
 	private JCheckBox checkBox1;
 	private JCheckBox checkBox2;
 	private JButton addButton;
 	private JButton removeButton;
+
+	public void updateServerListDropdown() {
+		serverListDropdown.removeAllItems();
+		servers.getPoolOfServers().forEach(server -> {
+			serverListDropdown.addItem(server.getUrl()+(server.isAlive() ? "":" (offline)"));
+		});
+	}
 
 /*
 	// Getters for accessing components
