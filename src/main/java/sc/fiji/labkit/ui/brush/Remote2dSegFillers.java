@@ -25,7 +25,9 @@ public class Remote2dSegFillers extends AbstractSegFill {
 		servers.clear();
 		serverURLs.forEach(url -> {
 			try {
-				servers.add( new Remote2dSegFiller(url) );
+				Remote2dSegFiller server = new Remote2dSegFiller(url);
+				servers.add(server);
+				server.updateAvailableMethods();
 			} catch (IOException e) {
 				System.out.println("ERROR: talking to "+url+":\n"+e.getMessage());
 			}

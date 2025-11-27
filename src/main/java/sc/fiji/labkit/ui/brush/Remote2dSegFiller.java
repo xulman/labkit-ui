@@ -12,7 +12,7 @@ import java.util.List;
 public class Remote2dSegFiller {
 	public Remote2dSegFiller(final String url) throws IOException {
 		this.url = url;
-		this.updateAvailableMethods();
+		//this.updateAvailableMethods();
 	}
 
 	public String getUrl() {
