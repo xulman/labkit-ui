@@ -10,7 +10,7 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.LabelingType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import sc.fiji.labkit.ui.labeling.Label;
@@ -37,7 +37,7 @@ public abstract class AbstractSegFill {
 
 			//make sure the result image's size matches the size of the input
 			if (segMask == null || hasViewChangedSinceBefore) {
-				segMask = ArrayImgs.unsignedBytes( prompt.getViewImage2D().dimensionsAsLongArray() );
+				segMask = ArrayImgs.unsignedShorts( prompt.getViewImage2D().dimensionsAsLongArray() );
 			}
 			segment(prompt, segMask);
 
@@ -56,7 +56,7 @@ public abstract class AbstractSegFill {
 			//TODO: sweeps exactly inside the prompt, shouldn't we sweep full segMask
 			//TODO: sweeps at the resolution of the segMask (of the screen),
 			//      in contrast to the resolution of the Labkit's label mask image
-			final Cursor<UnsignedByteType> smlc = Views.interval(segMask, prompt.getBbox2D()).localizingCursor();
+			final Cursor<UnsignedShortType> smlc = Views.interval(segMask, prompt.getBbox2D()).localizingCursor();
 			while (smlc.hasNext()) {
 				if (smlc.next().get() > 0) {
 					smlc.localize(pos);
@@ -101,8 +101,8 @@ public abstract class AbstractSegFill {
 	}
 
 
-	abstract void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedByteType> fillThisMask);
-	Img<UnsignedByteType> segMask;
+	abstract void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedShortType> fillThisMask);
+	Img<UnsignedShortType> segMask;
 	final double[] pos = new double[3];
 	final AffineTransform3D auxTransform = new AffineTransform3D();
 }

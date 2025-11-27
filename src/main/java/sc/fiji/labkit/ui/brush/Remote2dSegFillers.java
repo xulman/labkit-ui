@@ -5,7 +5,7 @@ import bdv.util.BdvHandle;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
@@ -69,7 +69,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 
 
 	@Override
-	void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedByteType> fillThisMask) {
+	void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedShortType> fillThisMask) {
 		if (servers.isEmpty()) {
 			zeroMask(fillThisMask);
 		} else {
