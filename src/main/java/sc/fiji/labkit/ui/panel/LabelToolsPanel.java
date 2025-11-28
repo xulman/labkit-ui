@@ -34,6 +34,8 @@ import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
+import sc.fiji.labkit.ui.brush.Remote2dSegControlDlg;
+import sc.fiji.labkit.ui.brush.Remote2dSegFillers;
 import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
@@ -138,9 +140,20 @@ public class LabelToolsPanel extends JPanel {
 			final JToggleButton segButton = addActionButton("remote 2d segmenters",
 					(isToggled) -> { if (isToggled) segFill.segmenter.startPrompts(); else segFill.segmenter.stopPrompts(); },
 			false,
-			"/images/samj.png");
-
-			//TODO: add some behaviour for the button, e.g. dbl-click configuration dialog
+			"/images/sai.png");
+			//
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill);
+			remoteSegGui.createMainFrame();
+			//
+			final long[] prevClicked = new long[] {0}; //intentionally impossible time
+			segButton.addActionListener( (l) -> {
+				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left-button click
+				long nowClicked = System.currentTimeMillis();
+				if ((nowClicked - prevClicked[0]) < 300) {
+					remoteSegGui.showMainFrame();
+				}
+				prevClicked[0] = nowClicked;
+			} );
 		}
 
 		add(initOptionPanel(), "wrap, growy");

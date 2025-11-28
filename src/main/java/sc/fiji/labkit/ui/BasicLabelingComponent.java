@@ -135,11 +135,8 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final SamjFill samjFill = null;
 		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
 		if (remoteSegFill != null) {
-			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:7999") );
-			remoteSegFill.setSameMethodOnAllServers("cellpose.mixed");
-
-			System.out.println("reporting remote servers:");
-			remoteSegFill.getPoolOfServers().forEach(s -> System.out.println("-> "+s));
+			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:8000") );
+			remoteSegFill.setSameMethodOnAllServers("cellpose.original");
 		}
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
