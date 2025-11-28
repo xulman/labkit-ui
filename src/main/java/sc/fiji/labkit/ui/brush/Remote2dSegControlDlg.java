@@ -34,6 +34,7 @@ public class Remote2dSegControlDlg extends JPanel {
 		serverListDropdown.addItemListener(item -> {
 			if (item.getStateChange() == ItemEvent.SELECTED) {
 				repaintServerMethodsList();
+				servers.selectServer(serverListDropdown.getSelectedIndex());
 			}
 		});
 

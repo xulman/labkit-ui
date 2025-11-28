@@ -21,9 +21,11 @@ public class Remote2dSegFillers extends AbstractSegFill {
 	}
 
 	private final List<Remote2dSegFiller> servers = new ArrayList<>(20);
+	private int selectedServerIdx = 0;
 
 	public void setPoolOfServers(List<String> serverURLs) {
 		servers.clear();
+		makeServerIdxWithinBounds();
 		serverURLs.forEach(url -> addToPoolOfServers(url));
 	}
 
@@ -41,6 +43,7 @@ public class Remote2dSegFillers extends AbstractSegFill {
 	public void removeFromPoolOfServers(final String url) {
 		Iterator<Remote2dSegFiller> it = findServerObj(url);
 		if (it != null) it.remove();
+		makeServerIdxWithinBounds();
 	}
 	private Iterator<Remote2dSegFiller> findServerObj(final String url) {
 		Iterator<Remote2dSegFiller> it = servers.iterator();
@@ -85,14 +88,24 @@ public class Remote2dSegFillers extends AbstractSegFill {
 		});
 	}
 
+	private void makeServerIdxWithinBounds() {
+		selectedServerIdx = Math.max(0, Math.min(selectedServerIdx, servers.size()-1));
+	}
+	public void selectServer(int idx) {
+		selectedServerIdx = idx;
+		makeServerIdxWithinBounds();
+	}
+	public int getSelectedServer() {
+		return selectedServerIdx;
+	}
 
 	@Override
 	void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedShortType> fillThisMask) {
 		if (servers.isEmpty()) {
 			zeroMask(fillThisMask);
 		} else {
-			//TODO: round robin!!!
-			servers.get(0).segment(prompt.getViewImage2D(), fillThisMask);
+			System.out.println("Using "+servers.get(selectedServerIdx));
+			servers.get(selectedServerIdx).segment(prompt.getViewImage2D(), fillThisMask);
 		}
 	}
 
