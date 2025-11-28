@@ -10,6 +10,9 @@ import net.imglib2.type.numeric.real.FloatType;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -33,8 +36,11 @@ public class Remote2dSegFillers extends AbstractSegFill {
 		if (findServerObj(url) == null) {
 			try {
 				Remote2dSegFiller server = new Remote2dSegFiller(url);
+				new URL(url); //only to just-in-time possibly trigger a MalformedURL exception...
 				servers.add(server);
 				server.updateAvailableMethods();
+			} catch (MalformedURLException | UnknownHostException | IllegalArgumentException e) {
+				System.out.println("ERROR: not adding "+url+":\n"+e.getMessage());
 			} catch (IOException e) {
 				System.out.println("ERROR: talking to "+url+":\n"+e.getMessage());
 			}
