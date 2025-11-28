@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Remote2dSegControlDlg extends JPanel {
 	final JFrame frame = new JFrame("Remote 2D Segmenters Controller");
@@ -70,10 +71,22 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.weightx = 0.3;
 		bottomPanel.add(addButton, gbc);
 		addButton.addActionListener(l -> {
-			servers.addToPoolOfServers("http://localhost:8002");
+			final String serverURLs = JOptionPane.showInputDialog(
+				this,
+				"Enter an URL (example: http://127.0.0.1:8000),\nor several space-separated URLs:",
+				"Add Remote 2D Segmentation Servers",
+				JOptionPane.PLAIN_MESSAGE);
+			if (serverURLs == null) return; //the "Cancel" button
+
+			Arrays.stream(serverURLs.split(" "))
+					.filter(s -> !s.isEmpty())
+					.forEach(servers::addToPoolOfServers);
+
 			updateServerListDropdown();
-			updateButton.setEnabled(true);
-			removeButton.setEnabled(true);
+			if (!servers.getPoolOfServers().isEmpty()) {
+				updateButton.setEnabled(true);
+				removeButton.setEnabled(true);
+			}
 		});
 
 		gbc.gridx = 1;
