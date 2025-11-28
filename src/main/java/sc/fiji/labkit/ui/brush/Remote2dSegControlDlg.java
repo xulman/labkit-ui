@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Remote2dSegControlDlg extends JPanel {
 	final JFrame frame = new JFrame("Remote 2D Segmenters Controller");
@@ -83,6 +84,7 @@ public class Remote2dSegControlDlg extends JPanel {
 					.forEach(servers::addToPoolOfServers);
 
 			updateServerListDropdown();
+			repaintServerMethodsList();
 			if (!servers.getPoolOfServers().isEmpty()) {
 				updateButton.setEnabled(true);
 				removeButton.setEnabled(true);
@@ -99,6 +101,7 @@ public class Remote2dSegControlDlg extends JPanel {
 				System.out.println("ERROR: updating methods at "+server.getUrl()+":\n"+e.getMessage());
 			}
 			updateServerListDropdown();
+			repaintServerMethodsList();
 		});
 
 		gbc.gridx = 2;
@@ -110,6 +113,7 @@ public class Remote2dSegControlDlg extends JPanel {
 				removeButton.setEnabled(false);
 			}
 			updateServerListDropdown();
+			repaintServerMethodsList();
 		});
 
 		if (servers.getPoolOfServers().isEmpty()) {
@@ -148,6 +152,7 @@ public class Remote2dSegControlDlg extends JPanel {
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();
+		final Object selVal = serverListDropdown.getSelectedItem();
 		ignoreServerSelectionEvents = true;
 		serverListDropdown.removeAllItems();
 		servers.getPoolOfServers().forEach(server -> {
@@ -158,6 +163,12 @@ public class Remote2dSegControlDlg extends JPanel {
 			serverListDropdown.addItem(MODEL_LIST_EMPTY_TEXT);
 		} else {
 			serverListDropdown.setSelectedIndex(Math.min(selIdx, serverListDropdown.getItemCount()-1));
+			if (!Objects.equals(selVal, serverListDropdown.getSelectedItem())) {
+				//same index in the choice_list (means: selection listener is not triggered)
+				//but content is different!
+				servers.selectServer(serverListDropdown.getSelectedIndex());
+				repaintServerMethodsList();
+			}
 		}
 	}
 
