@@ -10,7 +10,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	public void createMainFrame() {
 		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		frame.add(this);
-		frame.setSize(400, 400);
+		frame.setSize(420, 400);
 		frame.setLocationRelativeTo(null);
 	}
 	public void showMainFrame() {

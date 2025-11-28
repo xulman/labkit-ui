@@ -45,8 +45,8 @@ public class Remote2dSegFiller {
 	public void setIsNotAlive() { isAlive = false; }
 	public boolean isAlive() { return isAlive; }
 
-	private String selectedMethod;
 	public final String NO_METHOD_SELECTED = "No model available";
+	private String selectedMethod = NO_METHOD_SELECTED;
 
 	public String selectMethod(final int index) {
 		selectedMethod = (index < 0 || index >= lastSeenAvailableMethods.size()) ?
