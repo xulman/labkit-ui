@@ -12,6 +12,7 @@ import sc.fiji.labkit.ui.models.LabelingModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class Remote2dSegFillers extends AbstractSegFill {
@@ -23,7 +24,11 @@ public class Remote2dSegFillers extends AbstractSegFill {
 
 	public void setPoolOfServers(List<String> serverURLs) {
 		servers.clear();
-		serverURLs.forEach(url -> {
+		serverURLs.forEach(url -> addToPoolOfServers(url));
+	}
+
+	public void addToPoolOfServers(final String url) {
+		if (findServerObj(url) == null) {
 			try {
 				Remote2dSegFiller server = new Remote2dSegFiller(url);
 				servers.add(server);
@@ -31,7 +36,18 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			} catch (IOException e) {
 				System.out.println("ERROR: talking to "+url+":\n"+e.getMessage());
 			}
-		});
+		}
+	}
+	public void removeFromPoolOfServers(final String url) {
+		Iterator<Remote2dSegFiller> it = findServerObj(url);
+		if (it != null) it.remove();
+	}
+	private Iterator<Remote2dSegFiller> findServerObj(final String url) {
+		Iterator<Remote2dSegFiller> it = servers.iterator();
+		while (it.hasNext()) {
+			if (url.equals( it.next().getUrl() )) return it;
+		}
+		return null;
 	}
 
 	public void randomizeOrderOfServers() {
