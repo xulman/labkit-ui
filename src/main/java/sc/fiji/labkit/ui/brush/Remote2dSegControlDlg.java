@@ -33,7 +33,7 @@ public class Remote2dSegControlDlg extends JPanel {
 		serverListDropdown.setSelectedIndex(0);
 		add(serverListDropdown, BorderLayout.NORTH);
 		serverListDropdown.addItemListener(item -> {
-			if (item.getStateChange() == ItemEvent.SELECTED) {
+			if (item.getStateChange() == ItemEvent.SELECTED && !ignoreServerSelectionEvents) {
 				repaintServerMethodsList();
 				servers.selectServer(serverListDropdown.getSelectedIndex());
 			}
@@ -135,6 +135,7 @@ public class Remote2dSegControlDlg extends JPanel {
 
 	private final Remote2dSegFillers servers;
 
+	private boolean ignoreServerSelectionEvents = false;
 	private JComboBox<String> serverListDropdown;
 	private JList<String> serverMethodsList;
 	private DefaultListModel<String> listModel;
@@ -147,10 +148,12 @@ public class Remote2dSegControlDlg extends JPanel {
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();
+		ignoreServerSelectionEvents = true;
 		serverListDropdown.removeAllItems();
 		servers.getPoolOfServers().forEach(server -> {
 			serverListDropdown.addItem(server.getUrl()+(server.isAlive() ? "":" (offline)"));
 		});
+		ignoreServerSelectionEvents = false;
 		if (serverListDropdown.getItemCount() == 0) {
 			serverListDropdown.addItem(MODEL_LIST_EMPTY_TEXT);
 		} else {
