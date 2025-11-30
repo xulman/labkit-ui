@@ -1,7 +1,6 @@
 package sc.fiji.labkit.ui.segmentation;
 
 import net.imagej.ImgPlus;
-import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.loops.LoopBuilder;
 import net.imglib2.roi.labeling.LabelingType;
@@ -10,7 +9,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Pair;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import net.imglib2.view.composite.GenericComposite;
 import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.labeling.Labeling;
 import sc.fiji.labkit.ui.models.SegmentationModel;
@@ -47,6 +45,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 		LoopBuilder.setImages(labelImage,outputSegmentation)
 				.forEachPixel((l,o) -> {
 					if (l.contains(selectedLabel)) o.setReal(1);
+					l.remove(selectedLabel);
 				});
 		//System.out.println("L2S segmenter stop");
 	}
