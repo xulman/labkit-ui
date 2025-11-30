@@ -38,17 +38,17 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 
 	@Override
 	public void segment(ImgPlus<?> image, RandomAccessibleInterval<? extends IntegerType<?>> outputSegmentation) {
-		System.out.println("L2S segmenter start");
+		System.out.println("L2S segmenter");
 		IntervalView<LabelingType<Label>> labelImage = Views.interval(segmentationModel.imageLabelingModel().labeling().get(), outputSegmentation);
 		Label selectedLabel = segmentationModel.imageLabelingModel().selectedLabel().get();
-		System.out.println("monitoring label: "+selectedLabel.name());
-		System.out.println("label image portion:"+(Interval)labelImage);
-		System.out.println("segme image portion:"+(Interval)outputSegmentation);
+		//System.out.println("monitoring label: "+selectedLabel.name());
+		//System.out.println("label image portion:"+(Interval)labelImage);
+		//System.out.println("segme image portion:"+(Interval)outputSegmentation);
 		LoopBuilder.setImages(labelImage,outputSegmentation)
 				.forEachPixel((l,o) -> {
 					if (l.contains(selectedLabel)) o.setReal(1);
 				});
-		System.out.println("L2S segmenter stop");
+		//System.out.println("L2S segmenter stop");
 	}
 
 	@Override
