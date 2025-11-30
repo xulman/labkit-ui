@@ -33,36 +33,20 @@ import ij.ImagePlus;
 import net.imagej.ImageJ;
 import net.imagej.ImgPlus;
 import net.imagej.patcher.LegacyInjector;
-import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.VirtualStackAdapter;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.loops.LoopBuilder;
-import net.imglib2.roi.labeling.LabelingType;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Pair;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.composite.GenericComposite;
 import sc.fiji.labkit.ui.SegmentationComponent;
 import sc.fiji.labkit.ui.inputimage.DatasetInputImage;
-import sc.fiji.labkit.ui.labeling.Label;
-import sc.fiji.labkit.ui.labeling.Labeling;
 import sc.fiji.labkit.ui.models.DefaultSegmentationModel;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
-import org.scijava.Context;
 import org.scijava.ui.behaviour.util.RunnableAction;
-import sc.fiji.labkit.ui.models.Holder;
-import sc.fiji.labkit.ui.segmentation.SegmentationPlugin;
-import sc.fiji.labkit.ui.segmentation.Segmenter;
+import sc.fiji.labkit.ui.segmentation.LabelsTakingSegmenter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class SegmentationComponentDemo {
 
@@ -77,101 +61,13 @@ public class SegmentationComponentDemo {
 	private SegmentationComponentDemo() {
 		JFrame frame = setupFrame();
 		ImgPlus<?> image = VirtualStackAdapter.wrap(new ImagePlus(
-		"https://imagej.net/ij/images/blobs.gif"));
+			"https://imagej.net/ij/images/blobs.gif"));
 		ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 		segmentationModel = new DefaultSegmentationModel(ij.context(), new DatasetInputImage(image));
 		segmenter = new SegmentationComponent(frame, segmentationModel, false);
 
-		segmentationModel.segmenterList().addSegmenter(new SegmentationPlugin() {
-			@Override
-			public String getTitle() {
-				return "Labelling To Segmentation";
-			}
-
-			@Override
-			public Segmenter createSegmenter() {
-				return new Segmenter() {
-					@Override
-					public void editSettings(JFrame dialogParent, List<Pair<ImgPlus<?>, Labeling>> trainingData) {}
-
-					@Override
-					public void train(List<Pair<ImgPlus<?>, Labeling>> trainingData) {
-						System.out.println("L2S training");
-					}
-
-					@Override
-					public void segment(ImgPlus<?> image, RandomAccessibleInterval<? extends IntegerType<?>> outputSegmentation) {
-						System.out.println("L2S segmenter start");
-						IntervalView<LabelingType<Label>> labelImage = Views.interval(segmentationModel.imageLabelingModel().labeling().get(), outputSegmentation);
-						Label selectedLabel = segmentationModel.imageLabelingModel().selectedLabel().get();
-						System.out.println("monitoring label: "+selectedLabel.name());
-						System.out.println("label image portion:"+(Interval)labelImage);
-						System.out.println("segme image portion:"+(Interval)outputSegmentation);
-						LoopBuilder.setImages(labelImage,outputSegmentation)
-								  .forEachPixel((l,o) -> {
-									  //int resVal = l.contains(selectedLabel) ? 1 : 0;
-									  //o.setReal(resVal);
-									  if (l.contains(selectedLabel)) o.setReal(1);
-							});
-						System.out.println("L2S segmenter stop");
-					}
-
-					@Override
-					public void predict(ImgPlus<?> image, RandomAccessibleInterval<? extends RealType<?>> outputProbabilityMap) {
-						System.out.println("L2S predictor start");
-						RandomAccessibleInterval<? extends GenericComposite<? extends RealType<?>>> output =
-								  Views.collapse(outputProbabilityMap);
-						IntervalView<LabelingType<Label>> labelImage = Views.interval(segmentationModel.imageLabelingModel().labeling().get(), output);
-						Label selectedLabel = segmentationModel.imageLabelingModel().selectedLabel().get();
-						System.out.println("monitoring label: "+selectedLabel.name());
-						System.out.println("label image portion:"+(Interval)labelImage);
-						System.out.println("segme image portion:"+(Interval)output);
-						LoopBuilder.setImages(labelImage,output)
-								  .forEachPixel((l,o) -> {
-									  //int resVal = l.contains(selectedLabel) ? 2 : 1;
-									  //o.get(0).setReal(resVal);
-									  if (l.contains(selectedLabel)) o.get(0).setReal(1);
-								  });
-						System.out.println("L2S predictor stop");
-					}
-
-					@Override
-					public boolean isTrained() {
-						return true;
-					}
-
-					@Override
-					public void saveModel(String path) {}
-
-					@Override
-					public void openModel(String path) {}
-
-					@Override
-					public List<String> classNames() {
-						System.out.println("reporting training class names");
-						return Arrays.asList("foreground","background","trouba");
-					}
-
-					@Override
-					public int[] suggestCellSize(ImgPlus<?> image) {
-						return new int[] { 150, 150 };
-					}
-
-					@Override
-					public boolean requiresFixedCellSize() {
-						return false;
-					}
-				};
-			}
-
-			@Override
-			public boolean canOpenFile(String filename) {
-				return true;
-			}
-		});
-
-
+		segmentationModel.segmenterList().addSegmenter(new LabelsTakingSegmenter(segmentationModel));
 
 		frame.add(segmenter);
 		frame.add(getBottomPanel(), BorderLayout.PAGE_END);
