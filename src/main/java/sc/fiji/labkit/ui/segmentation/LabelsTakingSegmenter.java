@@ -41,7 +41,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 			System.out.println("WARNING! NOT CREATING A LOCAL OUTPUT SEGMENTATION IMAGE");
 			System.out.println("         which would have been "+reportSize(pxCnt)+" large");
 		} else {
-			System.out.println("BTW, keeping aside "+reportSize(pxCnt)+" large");
+			System.out.println("BTW, keeping aside "+reportSize(pxCnt)+" large buffer");
 		}
 	}
 
@@ -60,17 +60,17 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 
 	@Override
 	public void editSettings(JFrame dialogParent, List<Pair<ImgPlus<?>, Labeling>> trainingData) {
-		System.out.println("Edit settings here!!!");
+		//System.out.println("Edit settings here!!!");
 	}
 
 	@Override
 	public void train(List<Pair<ImgPlus<?>, Labeling>> trainingData) {
-		System.out.println("L2S training");
+		//System.out.println("L2S training");
 	}
 
 	@Override
 	public void segment(ImgPlus<?> image, RandomAccessibleInterval<? extends IntegerType<?>> outputSegmentation) {
-		System.out.println("L2S segmenter");
+		//System.out.println("L2S segmenter");
 		final Label selectedLabel = segmentationModel.imageLabelingModel().selectedLabel().get();
 		final int outputLabel = 1;
 		IntervalView<LabelingType<Label>> labelImage = Views.interval(segmentationModel.imageLabelingModel().labeling().get(), outputSegmentation);
@@ -98,7 +98,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 
 	@Override
 	public void predict(ImgPlus<?> image, RandomAccessibleInterval<? extends RealType<?>> outputProbabilityMap) {
-		System.out.println("L2S predictor");
+		//System.out.println("L2S predictor");
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 
 	@Override
 	public List<String> classNames() {
-		System.out.println("reporting training class names");
+		//System.out.println("reporting training class names");
 		return Arrays.asList("background","foreground");
 	}
 
