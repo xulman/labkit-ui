@@ -147,7 +147,7 @@ public class Remote2dSegControlDlg extends JPanel {
 
 		if (segModel != null) {
 			// Add segmented button
-			segmenterAdderButton = new JButton("Add labels to segmentation 'classifier'");
+			segmenterAdderButton = new JButton("Add selected labels memorizing segmenter to Labkit");
 			segmenterAdderButton.addActionListener(l -> segModel.segmenterList()
 					  .addSegmenter(new LabelsTakingSegmenter(segModel)));
 			gbc.gridy = 4;
