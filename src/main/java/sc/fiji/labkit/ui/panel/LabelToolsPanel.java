@@ -89,6 +89,11 @@ public class LabelToolsPanel extends JPanel {
 		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
 		"&nbsp where SAMJ will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
 		"- <b>Double Left Click this icon</b> to open SAMJ controls and tutorials window.</small></html>";
+	private static final String SAMFILL_LABEL_TOOL_TIP = "<html><b>Annotate using Remote 2D Segmenters</b><br>" +
+		"<small>Controls:<br>" +
+		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
+		"&nbsp where segmenters will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
+		"- <b>Double Left Click this icon</b> to open SAI controls and tutorials window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
@@ -139,7 +144,7 @@ public class LabelToolsPanel extends JPanel {
 		}
 
 		if (segFill != null) {
-			final JToggleButton segButton = addActionButton("remote 2d segmenters",
+			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
 					(isToggled) -> { if (isToggled) segFill.segmenter.startPrompts(); else segFill.segmenter.stopPrompts(); },
 			false,
 			"/images/sai.png");
