@@ -142,8 +142,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
-		//final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
-		final SamjFill samjFill = null;
+		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
 		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
 		if (remoteSegFill != null) {
 			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:8000") );
