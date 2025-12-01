@@ -40,6 +40,7 @@ import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import net.miginfocom.swing.MigLayout;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -88,6 +89,11 @@ public class LabelToolsPanel extends JPanel {
 		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
 		"&nbsp where SAMJ will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
 		"- <b>Double Left Click this icon</b> to open SAMJ controls and tutorials window.</small></html>";
+	private static final String SAMFILL_LABEL_TOOL_TIP = "<html><b>Annotate using Remote 2D Segmenters</b><br>" +
+		"<small>Controls:<br>" +
+		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
+		"&nbsp where segmenters will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
+		"- <b>Double Left Click this icon</b> to open SAI controls and tutorials window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
@@ -103,7 +109,8 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, SamjFill samjFill, AbstractSegFill segFill)
+		PlanarModeController planarModeController, SamjFill samjFill, AbstractSegFill segFill,
+		SegmentationModel segmentationModel)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
@@ -137,12 +144,12 @@ public class LabelToolsPanel extends JPanel {
 		}
 
 		if (segFill != null) {
-			final JToggleButton segButton = addActionButton("remote 2d segmenters",
+			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
 					(isToggled) -> { if (isToggled) segFill.segmenter.startPrompts(); else segFill.segmenter.stopPrompts(); },
 			false,
 			"/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill);
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill, segmentationModel);
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time

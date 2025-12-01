@@ -75,7 +75,7 @@ public class SegmentationComponent extends JPanel implements AutoCloseable {
 		this.unmodifiableLabels = unmodifiableLabels;
 		this.segmentationModel = segmentationModel;
 		ImageLabelingModel imageLabelingModel = segmentationModel.imageLabelingModel();
-		labelingComponent = new BasicLabelingComponent(dialogBoxOwner, imageLabelingModel);
+		labelingComponent = new BasicLabelingComponent(dialogBoxOwner, imageLabelingModel, segmentationModel);
 		labelingComponent.addBdvLayer(PredictionLayer.createPredictionLayer(segmentationModel));
 		initActions();
 		setLayout(new BorderLayout());

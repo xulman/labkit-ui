@@ -113,9 +113,16 @@ public class Remote2dSegFillers extends AbstractSegFill {
 			System.out.println("Using "+servers.get(selectedServerIdx));
 			servers.get(selectedServerIdx).segment(prompt.getViewImage2D(), fillThisMask);
 		}
+		if (segInputToFiji) { ImageJFunctions.show(prompt.getViewImage2D()); }
+		if (segOutputToFiji) { ImageJFunctions.show(fillThisMask); }
 	}
 
 	public static <MT extends RealType<MT>> void zeroMask(Img<MT> mask) {
 		mask.forEach(MT::setZero);
 	}
+
+	private boolean segInputToFiji = false;
+	private boolean segOutputToFiji = false;
+	public void setSegInputToFiji(boolean newState) { this.segInputToFiji = newState; }
+	public void setSegOutputToFiji(boolean newState) { this.segOutputToFiji = newState; }
 }
