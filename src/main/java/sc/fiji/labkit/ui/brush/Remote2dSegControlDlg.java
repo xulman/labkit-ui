@@ -121,18 +121,24 @@ public class Remote2dSegControlDlg extends JPanel {
 			removeButton.setEnabled(false);
 		}
 
+		// Options for boundary-cutted cells
+		cb_processSegTgt = new JComboBox<>(new String[] {
+				  PROCESS_EXCLUDE_BORDERS, PROCESS_AS_IS, PROCESS_INCLUDE_BORDERS });
 		// Checkboxes
-		checkBox1 = new JCheckBox("CHECK BOX", true);  // Checked
-		checkBox2 = new JCheckBox("CHECK BOX", false); // Unchecked
+		cb_showSegSrc = new JCheckBox("Show inputs to segmentation in Fiji", false);  // Checked
+		cb_showSegTgt = new JCheckBox("Show outputs to segmentation in Fiji", false); // Unchecked
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
-		gbc.gridwidth = 1;
-		bottomPanel.add(checkBox1, gbc);
+		gbc.weightx = 1.0;
+		gbc.gridwidth = 3;
+		bottomPanel.add(cb_processSegTgt, gbc);
 
-		gbc.gridx = 0;
 		gbc.gridy = 2;
-		bottomPanel.add(checkBox2, gbc);
+		bottomPanel.add(cb_showSegSrc, gbc);
+
+		gbc.gridy = 3;
+		bottomPanel.add(cb_showSegTgt, gbc);
 
 		add(bottomPanel, BorderLayout.SOUTH);
 	}
@@ -144,11 +150,15 @@ public class Remote2dSegControlDlg extends JPanel {
 	private JList<String> serverMethodsList;
 	private DefaultListModel<String> listModel;
 	private final String MODEL_LIST_EMPTY_TEXT = "Please add a server...";
-	private JCheckBox checkBox1;
-	private JCheckBox checkBox2;
 	private JButton addButton;
 	private JButton updateButton;
 	private JButton removeButton;
+	private JCheckBox cb_showSegSrc;
+	private JCheckBox cb_showSegTgt;
+	private JComboBox<String> cb_processSegTgt;
+	private final String PROCESS_EXCLUDE_BORDERS = "Exclude the boundary-touching cells";
+	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
+	private final String PROCESS_INCLUDE_BORDERS = "Include the boundary-touching cells";
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();
