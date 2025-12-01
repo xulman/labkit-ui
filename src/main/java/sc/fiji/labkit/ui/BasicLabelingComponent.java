@@ -42,6 +42,7 @@ import sc.fiji.labkit.ui.brush.*;
 import sc.fiji.labkit.ui.labeling.LabelsLayer;
 import sc.fiji.labkit.ui.models.Holder;
 import sc.fiji.labkit.ui.models.ImageLabelingModel;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
@@ -49,7 +50,9 @@ import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A swing UI component that shows a Big Data Viewer panel and a tool bar for
@@ -67,12 +70,22 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	private ImageLabelingModel model;
 
+	private final SegmentationModel segmentationModel;
+
 	private JSlider zSlider;
 
 	public BasicLabelingComponent(final JFrame dialogBoxOwner,
 		final ImageLabelingModel model)
 	{
+		this(dialogBoxOwner,model,null);
+	}
+
+	public BasicLabelingComponent(final JFrame dialogBoxOwner,
+	                              final ImageLabelingModel model,
+	                              final SegmentationModel segModel)
+	{
 		this.model = model;
+		this.segmentationModel = segModel;
 		this.dialogBoxOwner = dialogBoxOwner;
 
 		initBdv(model.spatialDimensions().numDimensions() < 3);
@@ -130,10 +143,14 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
 		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
-		final FakeSegFiller fakeFill = LabkitUtils.isSamjAvailable() ? new FakeSegFiller(bdvHandle, model) : null;
+		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
+		if (remoteSegFill != null) {
+			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:8000") );
+			remoteSegFill.setSameMethodOnAllServers("cellpose.original");
+		}
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, samjFill, fakeFill);
+			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill, segmentationModel);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}

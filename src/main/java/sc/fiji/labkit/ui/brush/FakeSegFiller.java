@@ -5,7 +5,7 @@ import bdv.util.BdvHandle;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.img.Img;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import sc.fiji.labkit.ui.models.LabelingModel;
@@ -19,7 +19,7 @@ public class FakeSegFiller extends AbstractSegFill {
     }
 
     @Override
-    void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedByteType> fillThisMask) {
+    void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedShortType> fillThisMask) {
         //System.out.println("FakeSegmenter: Working on input image "+prompt.getViewImage2D());
         //System.out.println("FakeSegmenter: Working on output image "+fillThisMask);
         //System.out.println("FakeSegmenter: Considering local BBox: "+prompt.getBbox2D());
@@ -39,7 +39,7 @@ public class FakeSegFiller extends AbstractSegFill {
             } );
 
         //zero first the full output image, then non-zero certain area
-        fillThisMask.forEach(UnsignedByteType::setZero);
-        Views.interval(fillThisMask, tgtI).forEach(UnsignedByteType::setOne);
+        fillThisMask.forEach(UnsignedShortType::setZero);
+        Views.interval(fillThisMask, tgtI).forEach(UnsignedShortType::setOne);
     }
 }
