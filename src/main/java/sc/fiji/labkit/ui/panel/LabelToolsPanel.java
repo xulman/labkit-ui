@@ -40,6 +40,7 @@ import sc.fiji.labkit.ui.brush.SamjFill;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import net.miginfocom.swing.MigLayout;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -103,7 +104,8 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, SamjFill samjFill, AbstractSegFill segFill)
+		PlanarModeController planarModeController, SamjFill samjFill, AbstractSegFill segFill,
+		SegmentationModel segmentationModel)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
@@ -142,7 +144,7 @@ public class LabelToolsPanel extends JPanel {
 			false,
 			"/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill);
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill, segmentationModel);
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
