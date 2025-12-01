@@ -1,5 +1,8 @@
 package sc.fiji.labkit.ui.brush;
 
+import sc.fiji.labkit.ui.models.SegmentationModel;
+import sc.fiji.labkit.ui.segmentation.LabelsTakingSegmenter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
@@ -22,7 +25,7 @@ public class Remote2dSegControlDlg extends JPanel {
 		frame.setVisible(false);
 	}
 
-	public Remote2dSegControlDlg(final Remote2dSegFillers servers) {
+	public Remote2dSegControlDlg(final Remote2dSegFillers servers, SegmentationModel segModel) {
 		this.servers = servers;
 
 		setLayout(new BorderLayout(10, 10));
@@ -140,6 +143,15 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.gridy = 3;
 		bottomPanel.add(cb_showSegTgt, gbc);
 
+		if (segModel != null) {
+			// Add segmented button
+			segmenterAdderButton = new JButton("Add labels to segmentation 'classifier'");
+			segmenterAdderButton.addActionListener(l -> segModel.segmenterList()
+					  .addSegmenter(new LabelsTakingSegmenter(segModel)));
+			gbc.gridy = 4;
+			bottomPanel.add(segmenterAdderButton, gbc);
+		}
+
 		add(bottomPanel, BorderLayout.SOUTH);
 	}
 
@@ -159,6 +171,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	private final String PROCESS_EXCLUDE_BORDERS = "Exclude the boundary-touching cells";
 	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
 	private final String PROCESS_INCLUDE_BORDERS = "Include the boundary-touching cells";
+	private JButton segmenterAdderButton = null;
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();
