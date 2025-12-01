@@ -42,6 +42,7 @@ import sc.fiji.labkit.ui.brush.*;
 import sc.fiji.labkit.ui.labeling.LabelsLayer;
 import sc.fiji.labkit.ui.models.Holder;
 import sc.fiji.labkit.ui.models.ImageLabelingModel;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
@@ -69,12 +70,22 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	private ImageLabelingModel model;
 
+	private final SegmentationModel segmentationModel;
+
 	private JSlider zSlider;
 
 	public BasicLabelingComponent(final JFrame dialogBoxOwner,
 		final ImageLabelingModel model)
 	{
+		this(dialogBoxOwner,model,null);
+	}
+
+	public BasicLabelingComponent(final JFrame dialogBoxOwner,
+	                              final ImageLabelingModel model,
+	                              final SegmentationModel segModel)
+	{
 		this.model = model;
+		this.segmentationModel = segModel;
 		this.dialogBoxOwner = dialogBoxOwner;
 
 		initBdv(model.spatialDimensions().numDimensions() < 3);
@@ -131,19 +142,15 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
-		//final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
-		final SamjFill samjFill = null;
+		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
 		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
 		if (remoteSegFill != null) {
-			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:7999") );
-			remoteSegFill.setSameMethodOnAllServers("cellpose.mixed");
-
-			System.out.println("reporting remote servers:");
-			remoteSegFill.getPoolOfServers().forEach(s -> System.out.println("-> "+s));
+			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:8000") );
+			remoteSegFill.setSameMethodOnAllServers("cellpose.original");
 		}
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill);
+			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill, segmentationModel);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
