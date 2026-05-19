@@ -1,9 +1,9 @@
 package sc.fiji.labkit.ui.panel;
 
 import net.miginfocom.swing.MigLayout;
+import sc.fiji.labkit.ui.utils.FloatingHelpIcon;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class LocalHelpInfoPanel extends JFrame {
 	public LocalHelpInfoPanel() {
@@ -34,6 +34,15 @@ public class LocalHelpInfoPanel extends JFrame {
 				+"<b>Just move mouse over the control and press Ctrl+H.</b>"
 				+"</html>") );
 
+		JCheckBox showHelpCBox = new JCheckBox("Show an icon where help is available");
+		showHelpCBox.setSelected(ICON.isIconEnabled());
+		showHelpCBox.addActionListener(newState -> {
+				if (showHelpCBox.isSelected())
+					ICON.enableIcon();
+				else
+					ICON.disableIcon();
+			});
+		panel.add(showHelpCBox, "gaptop 10, align left");
 
 		JButton closeBtn = new JButton("Close");
 		closeBtn.addActionListener(ignore -> this.dispose());
@@ -47,5 +56,8 @@ public class LocalHelpInfoPanel extends JFrame {
 	}
 
 	/**
+	 * A helper icon that's (conditionally) visible next to the mouse
+	 * cursor when it is over a local-help-registered GUI element.
 	 */
+	public static final FloatingHelpIcon ICON = new FloatingHelpIcon("?");
 }
