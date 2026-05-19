@@ -4,7 +4,6 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowEvent;
 
 public class LocalHelpInfoPanel extends JFrame {
 	public LocalHelpInfoPanel() {
@@ -48,28 +47,5 @@ public class LocalHelpInfoPanel extends JFrame {
 	}
 
 	/**
-	 * Attaches mouse listeners to the given component so that the cursor
-	 * changes to HAND_CURSOR when the pointer enters it, and reverts to
-	 * the default cursor when it leaves.
-	 *
-	 * Swap Cursor.HAND_CURSOR for any other Cursor constant you like, e.g.:
-	 *   Cursor.CROSSHAIR_CURSOR, Cursor.MOVE_CURSOR, Cursor.WAIT_CURSOR …
 	 */
-	private void setupCursorChange(JComponent component) {
-		component.addMouseListener(new java.awt.event.MouseAdapter() {
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e) {
-				component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e) {
-				component.setCursor(Cursor.getDefaultCursor());
-			}
-		});
-	}
-
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(LocalHelpIntroductionDialog::new);
-	}
 }
