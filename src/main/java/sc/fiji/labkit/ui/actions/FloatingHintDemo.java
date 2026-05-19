@@ -16,6 +16,8 @@ import java.awt.*;
  */
 public class FloatingHintDemo extends JFrame {
 
+    private FloatingHelpIcon icon = new FloatingHelpIcon();
+
     public FloatingHintDemo() {
         setTitle("Floating Hint Badge Demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,13 +35,19 @@ public class FloatingHintDemo extends JFrame {
 
         JButton button = new JButton("Hover over me for the hint");
         button.setPreferredSize(new Dimension(240, 40));
+        button.addActionListener(l -> {
+            if (icon.isIconEnabled())
+                icon.disableIcon();
+            else
+                icon.enableIcon();
+        });
         gbc.gridy = 1;
         gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(button, gbc);
 
         // One line to attach the badge to the button.
         // Swap "?" for "i", "!", or any other symbol you like.
-        new FloatingHelpIcon("?").attachTo(button);
+        icon.attachTo(button);
 
         add(panel);
         setVisible(true);
