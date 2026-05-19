@@ -35,6 +35,7 @@ import bdv.util.BdvHandlePanel;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.DisplayMode;
+import sc.fiji.gui.help.HelpManager;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
 import sc.fiji.labkit.ui.bdv.BdvLayerLink;
@@ -49,7 +50,11 @@ import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A swing UI component that shows a Big Data Viewer panel and a tool bar for
@@ -83,11 +88,46 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		this.model.transformationModel().initialize(bdvHandle.getViewerPanel());
 	}
 
+	private final Map<String, URL> helpPageURLs = new HashMap<>(10);
+	{
+		try {
+			helpPageURLs.put("main window",         new URL("https://xnoskova.github.io/Wizard/#overview"));
+			helpPageURLs.put("single-fused",        new URL("https://xnoskova.github.io/Wizard/#sources"));
+			helpPageURLs.put("source-group",        new URL("https://xnoskova.github.io/Wizard/#groups"));
+			helpPageURLs.put("nearest-interpolate", new URL("https://xnoskova.github.io/Wizard/#interpolation"));
+			helpPageURLs.put("contrast settings",   new URL("https://xnoskova.github.io/Wizard/#contrast"));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("InternalError creating a hard-coded URL ("+e.getMessage()+"). Sorry for that.", e);
+		}
+	}
+
+	private JPanel unpackComponent(int idx) {
+		Component[] cardsElems = bdvHandle.getCardPanel().getComponent().getComponents();
+		JPanel card = (JPanel)cardsElems[idx];
+		JPanel firstContent = (JPanel)card.getComponent(1);
+		return (JPanel)firstContent.getComponent(0);
+	}
+
 	private void initBdv(boolean is2D) {
 		final BdvOptions options = BdvOptions.options();
 		if (is2D) options.is2D();
 		bdvHandle = new BdvHandlePanel(dialogBoxOwner, options);
 		bdvHandle.getViewerPanel().setDisplayMode(DisplayMode.FUSED);
+
+		final HelpManager help = HelpManager.obtain();
+		help.registerComponentHelpForWebBrowser(bdvHandle.getViewerPanel().getDisplay(), helpPageURLs.get("main window"));
+
+		JPanel bdvButtons = (JPanel)unpackComponent(0);
+		JPanel bdvSourcesPanel = (JPanel)unpackComponent(1);
+		JPanel bdvGroupsPanel = (JPanel)unpackComponent(2);
+
+		help.registerComponentHelpForWebBrowser(bdvButtons.getComponent(0), helpPageURLs.get("single-fused"));
+		help.registerComponentHelpForWebBrowser(bdvButtons.getComponent(1), helpPageURLs.get("source-group"));
+		help.registerComponentHelpForWebBrowser(bdvButtons.getComponent(2), helpPageURLs.get("nearest-interpolate"));
+		help.registerComponentHelpForWebBrowser(bdvSourcesPanel.getComponent(0), helpPageURLs.get("source-group"));
+		help.registerComponentHelpForWebBrowser(bdvSourcesPanel.getComponent(1), helpPageURLs.get("contrast settings"));
+		help.registerComponentHelpForWebBrowser(bdvGroupsPanel.getComponent(0), helpPageURLs.get("source-group"));
+		help.registerComponentHelpForWebBrowser(bdvGroupsPanel.getComponent(1), helpPageURLs.get("contrast settings"));
 	}
 
 	private void initPanel() {
@@ -141,6 +181,10 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		Collection<? extends AbstractNamedAction> shortcuts)
 	{
 		shortcuts.forEach(actionsAndBehaviours::addAction);
+
+		this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				  KeyStroke.getKeyStroke("ctrl H"), "local-gui-help");
+		this.getActionMap().put("local-gui-help", HelpManager.obtain().getKeyboardAction());
 	}
 
 	@Override
