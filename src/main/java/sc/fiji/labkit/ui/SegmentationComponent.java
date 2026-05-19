@@ -39,6 +39,7 @@ import sc.fiji.labkit.ui.models.SegmentationItem;
 import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.ImageInfoPanel;
 import sc.fiji.labkit.ui.panel.LabelPanel;
+import sc.fiji.labkit.ui.panel.LocalHelpInfoPanel;
 import sc.fiji.labkit.ui.panel.SegmenterPanel;
 import sc.fiji.labkit.ui.plugin.MeasureConnectedComponents;
 import sc.fiji.labkit.ui.segmentation.PredictionLayer;
@@ -114,10 +115,12 @@ public class SegmentationComponent extends JPanel implements AutoCloseable {
 		panel.add(labelPanel, "grow, wrap, height 0:50");
 		HelpManager.obtain().registerComponentHelpForWebBrowser(labelPanel,
 				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#labeling"));
+		LocalHelpInfoPanel.ICON.attachTo(labelPanel);
 		JPanel segmenterPanel = SegmenterPanel.newFramedSegmeterPanel(segmentationModel.segmenterList(), extensible);
 		panel.add(segmenterPanel, "grow, height 0:50");
 		HelpManager.obtain().registerComponentHelpForWebBrowser(segmenterPanel,
 				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#segmentation"));
+		LocalHelpInfoPanel.ICON.attachTo(segmenterPanel);
 		panel.invalidate();
 		panel.repaint();
 		return panel;
