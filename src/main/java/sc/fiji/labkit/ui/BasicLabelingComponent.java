@@ -44,6 +44,7 @@ import sc.fiji.labkit.ui.labeling.LabelsLayer;
 import sc.fiji.labkit.ui.models.Holder;
 import sc.fiji.labkit.ui.models.ImageLabelingModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
+import sc.fiji.labkit.ui.panel.LocalHelpInfoPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
 import sc.fiji.labkit.ui.utils.LabkitUtils;
@@ -128,6 +129,14 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		help.registerComponentHelpForWebBrowser(bdvSourcesPanel.getComponent(1), helpPageURLs.get("contrast settings"));
 		help.registerComponentHelpForWebBrowser(bdvGroupsPanel.getComponent(0), helpPageURLs.get("source-group"));
 		help.registerComponentHelpForWebBrowser(bdvGroupsPanel.getComponent(1), helpPageURLs.get("contrast settings"));
+
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvButtons.getComponent(0));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvButtons.getComponent(1));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvButtons.getComponent(2));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvSourcesPanel.getComponent(0));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvSourcesPanel.getComponent(1));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvGroupsPanel.getComponent(0));
+		LocalHelpInfoPanel.ICON.attachTo((JComponent)bdvGroupsPanel.getComponent(1));
 	}
 
 	private void initPanel() {

@@ -32,6 +32,7 @@ package sc.fiji.labkit.ui.panel;
 import ai.nets.samj.gui.BDVedMainGUI;
 import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.gui.help.HelpManager;
+import sc.fiji.labkit.ui.panel.LocalHelpInfoPanel;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
@@ -152,6 +153,7 @@ public class LabelToolsPanel extends JPanel {
 			} );
 			HelpManager.obtain()
 			           .registerComponentHelpForWebBrowser(samjButton, helpPageURLs.get(SAMJ_LABEL_TOOL_TIP));
+			LocalHelpInfoPanel.ICON.attachTo(samjButton);
 		}
 
 		add(initOptionPanel(), "wrap, growy");
@@ -174,36 +176,38 @@ public class LabelToolsPanel extends JPanel {
 		JToggleButton moveBtn = addActionButton(MOVE_TOOL_TIP, ignore -> {}, false,
 			"/images/move.png", "MOVE_TOOL", "ctrl G");
 		help.registerComponentHelpForWebBrowser(moveBtn, helpPageURLs.get(MOVE_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(moveBtn);
 
-		help.registerComponentHelpForWebBrowser(
-			addActionButton(DRAW_TOOL_TIP,
+		JComponent c;
+		c = addActionButton(DRAW_TOOL_TIP,
 				brushController::setBrushActive, true,
-				"/images/draw.png", "DRAW_TOOL", "ctrl D"),
-			helpPageURLs.get(DRAW_TOOL_TIP) );
+				"/images/draw.png", "DRAW_TOOL", "ctrl D");
+		help.registerComponentHelpForWebBrowser(c, helpPageURLs.get(DRAW_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(c);
 
-		help.registerComponentHelpForWebBrowser(
-			addActionButton(FLOOD_FILL_TOOL_TIP,
+		c = addActionButton(FLOOD_FILL_TOOL_TIP,
 				floodFillController::setFloodFillActive, false,
-				"/images/fill.png", "FILL_TOOL", "ctrl F"),
-			helpPageURLs.get(FLOOD_FILL_TOOL_TIP) );
+				"/images/fill.png", "FILL_TOOL", "ctrl F");
+		help.registerComponentHelpForWebBrowser(c, helpPageURLs.get(FLOOD_FILL_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(c);
 
-		help.registerComponentHelpForWebBrowser(
-			addActionButton(ERASE_TOOL_TIP,
+		c = addActionButton(ERASE_TOOL_TIP,
 				brushController::setEraserActive, true,
-				"/images/erase.png", "ERASE_TOOL", "ctrl E"),
-			helpPageURLs.get(ERASE_TOOL_TIP) );
+				"/images/erase.png", "ERASE_TOOL", "ctrl E");
+		help.registerComponentHelpForWebBrowser(c, helpPageURLs.get(ERASE_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(c);
 
-		help.registerComponentHelpForWebBrowser(
-			addActionButton(FLOOD_ERASE_TOOL_TIP,
+		c = addActionButton(FLOOD_ERASE_TOOL_TIP,
 				floodFillController::setRemoveBlobActive, false,
-				"/images/flooderase.png", "FLOOD_ERASE_TOOL", "ctrl R"),
-			helpPageURLs.get(FLOOD_ERASE_TOOL_TIP) );
+				"/images/flooderase.png", "FLOOD_ERASE_TOOL", "ctrl R");
+		help.registerComponentHelpForWebBrowser(c, helpPageURLs.get(FLOOD_ERASE_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(c);
 
-		help.registerComponentHelpForWebBrowser(
-			addActionButton(SELECT_LABEL_TOOL_TIP,
+		c = addActionButton(SELECT_LABEL_TOOL_TIP,
 				selectLabelController::setActive, false,
-				"/images/pipette.png"),
-			helpPageURLs.get(SELECT_LABEL_TOOL_TIP) );
+				"/images/pipette.png");
+		help.registerComponentHelpForWebBrowser(c, helpPageURLs.get(SELECT_LABEL_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(c);
 
 		moveBtn.doClick();
 	}
@@ -237,6 +241,7 @@ public class LabelToolsPanel extends JPanel {
 		button.setToolTipText(ENABLE_TEXT);
 		HelpManager.obtain()
 		           .registerComponentHelpForWebBrowser(button, helpPageURLs.get("PlanarButton"));
+		LocalHelpInfoPanel.ICON.attachTo(button);
 		return button;
 	}
 
@@ -283,6 +288,7 @@ public class LabelToolsPanel extends JPanel {
 		brushOptionsPanel.add(initSliderValueLabel(brushSizeSlider), "right");
 		HelpManager.obtain()
 		           .registerComponentHelpForWebBrowser(brushOptionsPanel, helpPageURLs.get(DRAW_TOOL_TIP));
+		LocalHelpInfoPanel.ICON.attachTo(brushOptionsPanel);
 		return brushOptionsPanel;
 	}
 
@@ -297,6 +303,7 @@ public class LabelToolsPanel extends JPanel {
 		});
 		HelpManager.obtain()
 		           .registerComponentHelpForWebBrowser(checkBox, helpPageURLs.get("OverlappingLabels"));
+		LocalHelpInfoPanel.ICON.attachTo(checkBox);
 		return checkBox;
 	}
 
