@@ -1,6 +1,4 @@
-package sc.fiji.labkit.ui.actions;
-
-import sc.fiji.labkit.ui.utils.FloatingHelpIcon;
+package sc.fiji.labkit.ui.utils;
 
 import javax.swing.*;
 import java.awt.*;
