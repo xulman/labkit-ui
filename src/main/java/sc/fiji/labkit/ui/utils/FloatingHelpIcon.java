@@ -17,6 +17,7 @@ public class FloatingHelpIcon {
 	private static final int OFFSET = 10;        // distance from cursor tip
 
 	private final JWindow window;
+	private boolean shouldShow = false;
 
 	public FloatingHelpIcon() {
 		this("?");
@@ -78,6 +79,26 @@ public class FloatingHelpIcon {
 	}
 
 	/**
+	 * Enables showing of the icon over the components
+	 * to which it is attached.
+	 */
+	public void enableIcon() {
+		shouldShow = true;
+	}
+
+	/**
+	 * Disables showing of the icon over the components
+	 * to which it is attached.
+	 */
+	public void disableIcon() {
+		shouldShow = false;
+	}
+
+	public boolean isIconEnabled() {
+		return shouldShow;
+	}
+
+	/**
 	 * Attaches this badge to {@code target}: the badge appears when the mouse
 	 * enters, follows as the mouse moves, and disappears on exit.
 	 */
@@ -89,24 +110,29 @@ public class FloatingHelpIcon {
 	private final MouseAdapter adapter = new MouseAdapter() {
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			moveTo(e.getLocationOnScreen());
-			show();
+			if (shouldShow) {
+				moveTo(e.getLocationOnScreen());
+				show();
+			}
 		}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			moveTo(e.getLocationOnScreen());
+			if (shouldShow)
+				moveTo(e.getLocationOnScreen());
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			//always hide (consider disabling showing in the middle of a mouse-over episode)
 			hide();
 		}
 
 		// Also hide while the button is held down and the cursor drifts out
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			moveTo(e.getLocationOnScreen());
+			if (shouldShow)
+				moveTo(e.getLocationOnScreen());
 		}
 	};
 }
