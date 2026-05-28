@@ -1,4 +1,4 @@
-package sc.fiji.labkit.ui.actions;
+package sc.fiji.labkit.ui.panel;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -6,12 +6,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 
-public class LocalHelpIntroductionDialog extends JFrame {
-	public LocalHelpIntroductionDialog() {
+public class LocalHelpInfoPanel extends JFrame {
+	public LocalHelpInfoPanel() {
 		this(null);
 	}
 
-	public LocalHelpIntroductionDialog(JComponent parent) {
+	public LocalHelpInfoPanel(JComponent parent) {
 		setTitle("How to use the local help feature");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(parent);

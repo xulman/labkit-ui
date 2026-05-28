@@ -31,6 +31,7 @@ package sc.fiji.labkit.ui.actions;
 
 import sc.fiji.labkit.ui.Extensible;
 import sc.fiji.labkit.ui.MenuBar;
+import sc.fiji.labkit.ui.panel.LocalHelpInfoPanel;
 
 import java.awt.*;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class ShowHelpAction {
 		extensible.addMenuItem(MenuBar.HELP_MENU,
 				  "Using Local GUI Help",
 				  103,
-				  ignore -> new LocalHelpIntroductionDialog(extensible.dialogParent().getJMenuBar()),
+				  ignore -> new LocalHelpInfoPanel(extensible.dialogParent().getJMenuBar()),
 				  null, null);
 
 		extensible.addMenuItem(MenuBar.VIEW_MENU,
