@@ -107,6 +107,18 @@ public class FloatingHelpIcon {
 		target.addMouseMotionListener(adapter);
 	}
 
+	/**
+	 * Attaches this badge to {@code target}, keeping it visible when the cursor
+	 * moves into any inner/child component of {@code target}. A {@code mouseExited}
+	 * event only hides the badge when the cursor has truly left the bounds of
+	 * {@code target}, preventing the brief blink that would otherwise occur at
+	 * child-component boundaries (unless the child has this badge attached as well).
+	 */
+	public void attachToKeepOverInnerOf(JComponent target) {
+		target.addMouseListener(persistentAdapter);
+		target.addMouseMotionListener(persistentAdapter);
+	}
+
 	private final MouseAdapter adapter = new MouseAdapter() {
 		@Override
 		public void mouseEntered(MouseEvent e) {
@@ -126,6 +138,37 @@ public class FloatingHelpIcon {
 		public void mouseExited(MouseEvent e) {
 			//always hide (consider disabling showing in the middle of a mouse-over episode)
 			hide();
+		}
+
+		// Also hide while the button is held down and the cursor drifts out
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			if (shouldShow)
+				moveTo(e.getLocationOnScreen());
+		}
+	};
+
+	private final MouseAdapter persistentAdapter = new MouseAdapter() {
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			if (shouldShow) {
+				moveTo(e.getLocationOnScreen());
+				show();
+			}
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			if (shouldShow)
+				moveTo(e.getLocationOnScreen());
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// Only hide when the cursor has truly left the component's area;
+			// a non-null getMousePosition(true) means it moved into a child.
+			if (((JComponent) e.getComponent()).getMousePosition(true) == null)
+				hide();
 		}
 
 		// Also hide while the button is held down and the cursor drifts out
