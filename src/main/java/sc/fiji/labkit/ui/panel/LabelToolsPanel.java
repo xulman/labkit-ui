@@ -31,6 +31,7 @@ package sc.fiji.labkit.ui.panel;
 
 import ai.nets.samj.gui.BDVedMainGUI;
 import org.scijava.ui.behaviour.util.RunnableAction;
+import sc.fiji.gui.help.HelpManager;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
@@ -41,6 +42,10 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Panel with the tool buttons for brush, flood fill, etc... Activates and
@@ -91,6 +96,22 @@ public class LabelToolsPanel extends JPanel {
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
 	private final SamjFill samjFillController;
+	private final Map<String, URL> helpPageURLs = new HashMap<>(10);
+	{
+		try {
+			helpPageURLs.put(MOVE_TOOL_TIP,         new URL("https://xnoskova.github.io/Wizard/#navigation"));
+			helpPageURLs.put(DRAW_TOOL_TIP,         new URL("https://xnoskova.github.io/Wizard/#main-tools"));
+			helpPageURLs.put(FLOOD_FILL_TOOL_TIP,   new URL("https://xnoskova.github.io/Wizard/#main-tools"));
+			helpPageURLs.put(ERASE_TOOL_TIP,        new URL("https://xnoskova.github.io/Wizard/#main-tools"));
+			helpPageURLs.put(FLOOD_ERASE_TOOL_TIP,  new URL("https://xnoskova.github.io/Wizard/#main-tools"));
+			helpPageURLs.put(SELECT_LABEL_TOOL_TIP, new URL("https://xnoskova.github.io/Wizard/#main-tools"));
+			helpPageURLs.put(SAMJ_LABEL_TOOL_TIP,   new URL("https://xnoskova.github.io/Wizard/#samj"));
+			helpPageURLs.put("OverlappingLabels",   new URL("https://xnoskova.github.io/Wizard/#labeling"));
+			helpPageURLs.put("PlanarButton",        new URL("https://xnoskova.github.io/Wizard/#slicing"));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("InternalError creating a hard-coded URL ("+e.getMessage()+"). Sorry for that.", e);
+		}
+	}
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -129,6 +150,8 @@ public class LabelToolsPanel extends JPanel {
 				}
 				prevClicked[0] = nowClicked;
 			} );
+			HelpManager.obtain()
+			           .registerComponentHelpForWebBrowser(samjButton, helpPageURLs.get(SAMJ_LABEL_TOOL_TIP));
 		}
 
 		add(initOptionPanel(), "wrap, growy");
@@ -146,23 +169,42 @@ public class LabelToolsPanel extends JPanel {
 	}
 
 	private void initActionButtons() {
+		final HelpManager help = HelpManager.obtain();
+
 		JToggleButton moveBtn = addActionButton(MOVE_TOOL_TIP, ignore -> {}, false,
 			"/images/move.png", "MOVE_TOOL", "ctrl G");
-		addActionButton(DRAW_TOOL_TIP,
-			brushController::setBrushActive, true,
-			"/images/draw.png", "DRAW_TOOL", "ctrl D");
-		addActionButton(FLOOD_FILL_TOOL_TIP,
-			floodFillController::setFloodFillActive, false,
-			"/images/fill.png", "FILL_TOOL", "ctrl F");
-		addActionButton(ERASE_TOOL_TIP,
-			brushController::setEraserActive, true,
-			"/images/erase.png", "ERASE_TOOL", "ctrl E");
-		addActionButton(FLOOD_ERASE_TOOL_TIP,
-			floodFillController::setRemoveBlobActive, false,
-			"/images/flooderase.png", "FLOOD_ERASE_TOOL", "ctrl R");
-		addActionButton(SELECT_LABEL_TOOL_TIP,
-			selectLabelController::setActive, false,
-			"/images/pipette.png");
+		help.registerComponentHelpForWebBrowser(moveBtn, helpPageURLs.get(MOVE_TOOL_TIP));
+
+		help.registerComponentHelpForWebBrowser(
+			addActionButton(DRAW_TOOL_TIP,
+				brushController::setBrushActive, true,
+				"/images/draw.png", "DRAW_TOOL", "ctrl D"),
+			helpPageURLs.get(DRAW_TOOL_TIP) );
+
+		help.registerComponentHelpForWebBrowser(
+			addActionButton(FLOOD_FILL_TOOL_TIP,
+				floodFillController::setFloodFillActive, false,
+				"/images/fill.png", "FILL_TOOL", "ctrl F"),
+			helpPageURLs.get(FLOOD_FILL_TOOL_TIP) );
+
+		help.registerComponentHelpForWebBrowser(
+			addActionButton(ERASE_TOOL_TIP,
+				brushController::setEraserActive, true,
+				"/images/erase.png", "ERASE_TOOL", "ctrl E"),
+			helpPageURLs.get(ERASE_TOOL_TIP) );
+
+		help.registerComponentHelpForWebBrowser(
+			addActionButton(FLOOD_ERASE_TOOL_TIP,
+				floodFillController::setRemoveBlobActive, false,
+				"/images/flooderase.png", "FLOOD_ERASE_TOOL", "ctrl R"),
+			helpPageURLs.get(FLOOD_ERASE_TOOL_TIP) );
+
+		help.registerComponentHelpForWebBrowser(
+			addActionButton(SELECT_LABEL_TOOL_TIP,
+				selectLabelController::setActive, false,
+				"/images/pipette.png"),
+			helpPageURLs.get(SELECT_LABEL_TOOL_TIP) );
+
 		moveBtn.doClick();
 	}
 
@@ -193,6 +235,8 @@ public class LabelToolsPanel extends JPanel {
 			brushController.setPlanarMode(selected);
 		});
 		button.setToolTipText(ENABLE_TEXT);
+		HelpManager.obtain()
+		           .registerComponentHelpForWebBrowser(button, helpPageURLs.get("PlanarButton"));
 		return button;
 	}
 
@@ -237,6 +281,8 @@ public class LabelToolsPanel extends JPanel {
 		JSlider brushSizeSlider = initBrushSizeSlider();
 		brushOptionsPanel.add(brushSizeSlider, "grow");
 		brushOptionsPanel.add(initSliderValueLabel(brushSizeSlider), "right");
+		HelpManager.obtain()
+		           .registerComponentHelpForWebBrowser(brushOptionsPanel, helpPageURLs.get(DRAW_TOOL_TIP));
 		return brushOptionsPanel;
 	}
 
@@ -249,6 +295,8 @@ public class LabelToolsPanel extends JPanel {
 			floodFillController.setOverlapping(overlapping);
 			samjFillController.setOverlapping(overlapping);
 		});
+		HelpManager.obtain()
+		           .registerComponentHelpForWebBrowser(checkBox, helpPageURLs.get("OverlappingLabels"));
 		return checkBox;
 	}
 

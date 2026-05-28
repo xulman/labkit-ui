@@ -29,6 +29,7 @@
 
 package sc.fiji.labkit.ui;
 
+import sc.fiji.gui.help.HelpManager;
 import sc.fiji.labkit.ui.actions.*;
 import sc.fiji.labkit.ui.menu.MenuKey;
 import sc.fiji.labkit.ui.models.ColoredLabelsModel;
@@ -109,10 +110,14 @@ public class SegmentationComponent extends JPanel implements AutoCloseable {
 		panel.setLayout(new MigLayout("", "[grow]", "[][grow][grow]"));
 		panel.add(ImageInfoPanel.newFramedImageInfoPanel(segmentationModel.imageLabelingModel(),
 			labelingComponent), "grow, wrap");
-		panel.add(LabelPanel.newFramedLabelPanel(segmentationModel
-			.imageLabelingModel(), extensible, unmodifiableLabels), "grow, wrap, height 0:50");
-		panel.add(SegmenterPanel.newFramedSegmeterPanel(segmentationModel.segmenterList(),
-			extensible), "grow, height 0:50");
+		JPanel labelPanel = LabelPanel.newFramedLabelPanel(segmentationModel.imageLabelingModel(), extensible, unmodifiableLabels);
+		panel.add(labelPanel, "grow, wrap, height 0:50");
+		HelpManager.obtain().registerComponentHelpForWebBrowser(labelPanel,
+				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#labeling"));
+		JPanel segmenterPanel = SegmenterPanel.newFramedSegmeterPanel(segmentationModel.segmenterList(), extensible);
+		panel.add(segmenterPanel, "grow, height 0:50");
+		HelpManager.obtain().registerComponentHelpForWebBrowser(segmenterPanel,
+				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#segmentation"));
 		panel.invalidate();
 		panel.repaint();
 		return panel;

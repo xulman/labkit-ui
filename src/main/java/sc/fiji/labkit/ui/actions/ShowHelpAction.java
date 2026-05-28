@@ -55,6 +55,18 @@ public class ShowHelpAction {
 			102,
 			ignore -> showWebPage("https://forum.image.sc/tag/labkit"),
 			null, null);
+
+		extensible.addMenuItem(MenuBar.HELP_MENU,
+				  "Using Local GUI Help",
+				  103,
+				  ignore -> new LocalHelpIntroductionDialog(extensible.dialogParent().getJMenuBar()),
+				  null, null);
+
+		extensible.addMenuItem(MenuBar.VIEW_MENU,
+				  "Using Visual Bookmarks",
+				  2000,
+				  ignore -> showWebPage("https://xnoskova.github.io/Wizard/#bookmarks"),
+				  null, null);
 	}
 
 	private void showWebPage(String url) {
