@@ -115,12 +115,12 @@ public class SegmentationComponent extends JPanel implements AutoCloseable {
 		panel.add(labelPanel, "grow, wrap, height 0:50");
 		HelpManager.obtain().registerComponentHelpForWebBrowser(labelPanel,
 				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#labeling"));
-		LocalHelpInfoPanel.ICON.attachTo(labelPanel);
+		LocalHelpInfoPanel.ICON.attachToKeepOverInnerOf(labelPanel);
 		JPanel segmenterPanel = SegmenterPanel.newFramedSegmeterPanel(segmentationModel.segmenterList(), extensible);
 		panel.add(segmenterPanel, "grow, height 0:50");
 		HelpManager.obtain().registerComponentHelpForWebBrowser(segmenterPanel,
 				  HelpManager.constructURL("https://xnoskova.github.io/Wizard/#segmentation"));
-		LocalHelpInfoPanel.ICON.attachTo(segmenterPanel);
+		LocalHelpInfoPanel.ICON.attachToKeepOverInnerOf(segmenterPanel);
 		panel.invalidate();
 		panel.repaint();
 		return panel;
