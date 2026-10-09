@@ -33,13 +33,16 @@ import org.scijava.ui.behaviour.util.RunnableAction;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
+import sc.fiji.labkit.ui.brush.Remote2dSegControlDlg;
+import sc.fiji.labkit.ui.brush.Remote2dSegFillers;
 import sc.fiji.labkit.ui.brush.SelectLabelController;
+import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import net.miginfocom.swing.MigLayout;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 /**
  * Panel with the tool buttons for brush, flood fill, etc... Activates and
@@ -79,11 +82,17 @@ public class LabelToolsPanel extends JPanel {
 		"<small>Keyboard shortcuts:<br>" +
 		"- Hold down the <b>Shift</b> key and <b>Left Click</b> on the image<br>" +
 		"  to select the label under the cursor.</small></html>";
+	private static final String SAMFILL_LABEL_TOOL_TIP = "<html><b>Annotate using Remote 2D Segmenters</b><br>" +
+		"<small>Controls:<br>" +
+		"- <b>Hold down L</b> key and <b>Move mouse</b> on the image to select a region<br>" +
+		"&nbsp where segmenters will annotate, the selecting is finished by <b>Releasing L</b>.<br>" +
+		"- <b>Double Left Click this icon</b> to open SAI controls and tutorials window.</small></html>";
 
 	private final FloodFillController floodFillController;
 	private final LabelBrushController brushController;
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
+	private final AbstractSegFill segFillController;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -92,17 +101,40 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController)
+		PlanarModeController planarModeController, AbstractSegFill segFill,
+		SegmentationModel segmentationModel)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
 		this.selectLabelController = selectLabelController;
 		this.planarModeController = planarModeController;
+		this.segFillController = segFill;
 
 		setLayout(new MigLayout("flowy, insets 0, gap 4pt, top", "[][][][][]",
 			"[]push"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 		initActionButtons();
+
+		if (segFill != null) {
+			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
+					(isToggled) -> { if (isToggled) segFill.segmenter.startPrompts(); else segFill.segmenter.stopPrompts(); },
+			false,
+			"/images/sai.png");
+			//
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill, segmentationModel);
+			remoteSegGui.createMainFrame();
+			//
+			final long[] prevClicked = new long[] {0}; //intentionally impossible time
+			segButton.addActionListener( (l) -> {
+				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left-button click
+				long nowClicked = System.currentTimeMillis();
+				if ((nowClicked - prevClicked[0]) < 300) {
+					remoteSegGui.showMainFrame();
+				}
+				prevClicked[0] = nowClicked;
+			} );
+		}
+
 		add(initOptionPanel(), "wrap, growy");
 		add(initPlanarModeButton(), "growy");
 	}
@@ -219,6 +251,7 @@ public class LabelToolsPanel extends JPanel {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
+			if (segFillController != null) segFillController.setOverlapping(overlapping);
 		});
 		return checkBox;
 	}

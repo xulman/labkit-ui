@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>38.0.1</version>
+		<version>44.0.0</version>
 	</parent>
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>labkit-ui</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>0.5.0-SAI</version>
 
 	<name>Labkit</name>
 	<description>The Labkit image segmentation tool for Fiji.</description>
@@ -94,6 +94,7 @@
 		<imglib2-cache.version>1.0.0-beta-18</imglib2-cache.version>
 		<imglib2-algorithm.version>0.15.3</imglib2-algorithm.version>
 		<bigdataviewer-core.version>10.6.0</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-36</bigdataviewer-vistools.version>
 		<labkit-pixel-classification.version>0.1.18</labkit-pixel-classification.version>
 		<spim_data.version>2.3.4</spim_data.version>
 	</properties>
@@ -263,7 +264,19 @@
 			</exclusions>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+
+		<dependency>
+			<groupId>ai.nets</groupId>
+			<artifactId>samj-BDV</artifactId>
+			<version>0.0.6-SNAPSHOT</version>
+		</dependency>
+        <dependency>
+            <groupId>ai.nets</groupId>
+            <artifactId>samj</artifactId>
+            <version>0.0.3-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<repositories>
 		<repository>

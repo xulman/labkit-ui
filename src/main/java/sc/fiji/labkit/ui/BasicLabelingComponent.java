@@ -42,13 +42,17 @@ import sc.fiji.labkit.ui.brush.*;
 import sc.fiji.labkit.ui.labeling.LabelsLayer;
 import sc.fiji.labkit.ui.models.Holder;
 import sc.fiji.labkit.ui.models.ImageLabelingModel;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
+import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A swing UI component that shows a Big Data Viewer panel and a tool bar for
@@ -66,12 +70,22 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	private ImageLabelingModel model;
 
+	private final SegmentationModel segmentationModel;
+
 	private JSlider zSlider;
 
 	public BasicLabelingComponent(final JFrame dialogBoxOwner,
 		final ImageLabelingModel model)
 	{
+		this(dialogBoxOwner,model,null);
+	}
+
+	public BasicLabelingComponent(final JFrame dialogBoxOwner,
+	                              final ImageLabelingModel model,
+	                              final SegmentationModel segModel)
+	{
 		this.model = model;
+		this.segmentationModel = segModel;
 		this.dialogBoxOwner = dialogBoxOwner;
 
 		initBdv(model.spatialDimensions().numDimensions() < 3);
@@ -123,8 +137,18 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 			bdvHandle, model, actionsAndBehaviours);
 		final SelectLabelController selectLabelController =
 			new SelectLabelController(bdvHandle, model, actionsAndBehaviours);
+		//
+		//pass the Labkit's main window (JFrame) title to BDV's JPanel
+		//so that a downstream code that works solely with that BDV
+		//could provide some identification (to which BDV it belongs)
+		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
+		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvHandle, model);
+		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100") );
+		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
+		//TODO VLADO here add the labkit tailoring: always 2D brushes, enable overlapping pixels
+		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController);
+			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
