@@ -107,7 +107,7 @@ public abstract class AbstractSegFill {
 				|| cacheWasForContrastAdjusted // (d)
 				|| !promptEvent.hasSameViewAs(cacheForThisBdvPromptsEvent) // (a)
 				|| ctrl.getOrigViewService().hasChangedSince(cacheAtThisChangeCounter)) {
-			System.out.println("Fetching fresh orig view now, for source: "+sac.getSpimSource().getName());
+			System.out.println("======> Fetching fresh orig view now, for source: "+sac.getSpimSource().getName());
 
 			OriginalViewsService.CapturedView<FloatType> view
 					= ctrl.getOrigViewService().getEventView(sac.getSpimSource(),
@@ -133,7 +133,7 @@ public abstract class AbstractSegFill {
 				  || !cacheWasForContrastAdjusted // (d)
 				  || !promptEvent.hasSameViewAs(cacheForThisBdvPromptsEvent) // (a)
 				  || ctrl.getConvViewServiceFor(sac).hasChangedSince(cacheAtThisChangeCounter)) {
-			System.out.println("Fetching fresh contrast-adjusted view now, for source: "+sac.getSpimSource().getName());
+			System.out.println("======> Fetching fresh contrast-adjusted view now, for source: "+sac.getSpimSource().getName());
 
 			OriginalViewsService.CapturedView<FloatType> view
 					= ctrl.getConvViewServiceFor(sac).getEventView(sac.getSpimSource(),
