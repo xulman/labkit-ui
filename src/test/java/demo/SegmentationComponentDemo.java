@@ -30,7 +30,9 @@
 package demo;
 
 import ij.ImagePlus;
+import net.imagej.ImageJ;
 import net.imagej.ImgPlus;
+import net.imagej.patcher.LegacyInjector;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.VirtualStackAdapter;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -40,8 +42,8 @@ import sc.fiji.labkit.ui.models.DefaultSegmentationModel;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
 import net.miginfocom.swing.MigLayout;
-import org.scijava.Context;
 import org.scijava.ui.behaviour.util.RunnableAction;
+import sc.fiji.labkit.ui.segmentation.LabelsTakingSegmenter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,16 +54,21 @@ public class SegmentationComponentDemo {
 	private final DefaultSegmentationModel segmentationModel;
 
 	public static void main(String... args) {
+		LegacyInjector.preinit();
 		new SegmentationComponentDemo();
 	}
 
 	private SegmentationComponentDemo() {
 		JFrame frame = setupFrame();
 		ImgPlus<?> image = VirtualStackAdapter.wrap(new ImagePlus(
-			"https://imagej.nih.gov/ij/images/FluorescentCells.jpg"));
-		Context context = new Context();
-		segmentationModel = new DefaultSegmentationModel(context, new DatasetInputImage(image));
+			"https://imagej.net/ij/images/blobs.gif"));
+		ImageJ ij = new ImageJ();
+		ij.ui().showUI();
+		segmentationModel = new DefaultSegmentationModel(ij.context(), new DatasetInputImage(image));
 		segmenter = new SegmentationComponent(frame, segmentationModel, false);
+
+		segmentationModel.segmenterList().addSegmenter(new LabelsTakingSegmenter(segmentationModel));
+
 		frame.add(segmenter);
 		frame.add(getBottomPanel(), BorderLayout.PAGE_END);
 		frame.setVisible(true);

@@ -129,4 +129,35 @@ public class LabkitUtils {
 		return new ValuePair<>(min, max);
 	}
 
+	public static boolean isClassAvailable(final String className) {
+		try {
+			//this checks for presence of the class
+			Class.forName(className, false, ClassLoader.getSystemClassLoader());
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
+	public static boolean isSamjAvailable() {
+		if (isClassAvailable("ai.nets.samj.models.Sam2")) {
+			return true;
+		} else {
+			System.out.println("--------------------------------------------------------------------------------------------");
+			System.out.println("NOTICE: Labkit could use AI-labelling helper, but the SAMJ Fiji update site must be enabled.");
+			System.out.println("--------------------------------------------------------------------------------------------");
+			return false;
+		}
+	}
+
+	public static boolean isBdvPromptingAvailable() {
+		if (isClassAvailable("bdv.interactive.prompts.BdvPrompts")) {
+			return true;
+		} else {
+			System.out.println("--------------------------------------------------------------------------------------------");
+			System.out.println("NOTICE: Labkit could use AI-labelling client-server helper, but the QQQQ Fiji update site must be enabled.");
+			System.out.println("--------------------------------------------------------------------------------------------");
+			return false;
+		}
+	}
 }
