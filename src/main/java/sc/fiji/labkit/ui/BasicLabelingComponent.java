@@ -142,12 +142,11 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
-		final SamjFill samjFill = LabkitUtils.isSamjAvailable() ? new SamjFill(bdvHandle, model) : null;
-		final Remote2dSegFillers remoteSegFill = LabkitUtils.isBdvPromptingAvailable() ? new Remote2dSegFillers(bdvHandle, model) : null;
-		if (remoteSegFill != null) {
-			remoteSegFill.setPoolOfServers( Arrays.asList("http://localhost:8000") );
-			remoteSegFill.setSameMethodOnAllServers("cellpose.original");
-		}
+		final SamjFill samjFill = null;
+		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvHandle, model);
+		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100") );
+		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
+		//TODO VLADO here add the labkit tailoring: always 2D brushes, enable overlapping pixels
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
 			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill, segmentationModel);
