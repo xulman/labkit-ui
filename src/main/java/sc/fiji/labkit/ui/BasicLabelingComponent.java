@@ -148,7 +148,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//TODO VLADO here add the labkit tailoring: always 2D brushes, enable overlapping pixels
 		//
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, samjFill, remoteSegFill, segmentationModel);
+			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}

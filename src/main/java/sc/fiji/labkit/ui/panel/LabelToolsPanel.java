@@ -101,7 +101,7 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, SamjFill samjFill, AbstractSegFill segFill,
+		PlanarModeController planarModeController, AbstractSegFill segFill,
 		SegmentationModel segmentationModel)
 	{
 		this.brushController = brushController;
