@@ -33,7 +33,7 @@ import ij.ImagePlus;
 import ij.macro.Interpreter;
 import net.imglib2.img.VirtualStackAdapter;
 import net.imglib2.test.ImgLib2Assert;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.junit.Test;
 import org.scijava.Context;
 import sc.fiji.labkit.ui.utils.TestResources;
