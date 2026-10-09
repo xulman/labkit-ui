@@ -29,12 +29,14 @@
 
 package sc.fiji.labkit.ui;
 
+import bdv.interactive.behaviours.BdvPromptsBehaviours;
 import bdv.ui.splitpanel.SplitPanel;
 import bdv.util.BdvHandle;
 import bdv.util.BdvHandlePanel;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.DisplayMode;
+import bdv.viewer.SourceAndConverter;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
 import sc.fiji.labkit.ui.bdv.BdvLayerLink;
@@ -142,11 +144,38 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
-		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvHandle, model);
+
+		final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdvHandle);
+		//
+		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvPromptsController, model);
 		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100") );
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
-		//TODO VLADO here add the labkit tailoring: always 2D brushes, enable overlapping pixels
 		//
+		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
+		brushController.setPlanarMode(true);
+		brushController.setOverlapping( remoteSegFill.getOverlapping() );
+		floodFillController.setOverlapping( remoteSegFill.getOverlapping() );
+		//
+		//register handlers!
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
+				remoteSegFill::getEnabled,
+				e -> {
+					System.out.println("DEBUG triggered prompt processor (original)");
+					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
+					remoteSegFill.updateOrigImageForSource((SourceAndConverter)sac, e);
+					remoteSegFill.segment();
+					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
+				});
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
+				  remoteSegFill::getEnabled,
+				  e -> {
+					  System.out.println("DEBUG triggered prompt processor (contrast)");
+					  SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
+					  remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
+					  remoteSegFill.segment();
+					  remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
+				  });
+
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
 			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));

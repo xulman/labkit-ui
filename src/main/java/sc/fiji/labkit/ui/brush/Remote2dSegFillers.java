@@ -1,7 +1,5 @@
 package sc.fiji.labkit.ui.brush;
 
-import bdv.interactive.prompts.planarshapes.PlanarRectangleIn3D;
-import bdv.util.BdvHandle;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.RealType;
@@ -18,9 +16,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * This is the SAI main implementation.
+ */
 public class Remote2dSegFillers extends AbstractSegFill {
-	public Remote2dSegFillers(BdvHandle bdv, LabelingModel model) {
-		super(bdv, model);
+	public Remote2dSegFillers(BdvPromptsController bdvCtrl, LabelingModel model) {
+		super(bdvCtrl, model);
 	}
 
 	private final List<Remote2dSegFiller> servers = new ArrayList<>(20);
@@ -106,14 +107,14 @@ public class Remote2dSegFillers extends AbstractSegFill {
 	}
 
 	@Override
-	void segment(PlanarRectangleIn3D<FloatType> prompt, Img<UnsignedShortType> fillThisMask) {
+	public void segment(Img<FloatType> fromThisRawImage, Img<UnsignedShortType> fillThisMask) {
 		if (servers.isEmpty()) {
 			zeroMask(fillThisMask);
 		} else {
 			System.out.println("Using "+servers.get(selectedServerIdx));
-			servers.get(selectedServerIdx).segment(prompt.getViewImage2D(), fillThisMask);
+			servers.get(selectedServerIdx).segment(fromThisRawImage, fillThisMask);
 		}
-		if (segInputToFiji) { ImageJFunctions.show(prompt.getViewImage2D()); }
+		if (segInputToFiji) { ImageJFunctions.show(fromThisRawImage); }
 		if (segOutputToFiji) { ImageJFunctions.show(fillThisMask); }
 	}
 
