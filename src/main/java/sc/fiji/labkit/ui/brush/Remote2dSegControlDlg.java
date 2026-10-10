@@ -1,7 +1,8 @@
 package sc.fiji.labkit.ui.brush;
 
-import sc.fiji.labkit.ui.models.SegmentationModel;
-import sc.fiji.labkit.ui.segmentation.LabelsTakingSegmenter;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,7 @@ public class Remote2dSegControlDlg extends JPanel {
 		frame.setVisible(false);
 	}
 
-	public Remote2dSegControlDlg(final Remote2dSegFillers servers, SegmentationModel segModel) {
+	public Remote2dSegControlDlg(final Remote2dSegFillers servers, final DiskCachedCellSegmentationImg<?> segLayer) {
 		this.servers = servers;
 
 		setLayout(new BorderLayout(10, 10));
@@ -164,13 +165,21 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.gridy = 3;
 		bottomPanel.add(cb_showSegTgt, gbc);
 
-		if (segModel != null) {
-			// Add segmented button
-			segmenterAdderButton = new JButton("Add selected labels memorizing segmenter to Labkit");
-			segmenterAdderButton.addActionListener(l -> segModel.segmenterList()
-					  .addSegmenter(new LabelsTakingSegmenter(segModel)));
+		if (segLayer != null) {
+			// Add segmentation buttons
+			segmenterAdderButton = new JButton("Submit to segmentation");
+			segmenterAdderButton.addActionListener(l
+					-> segLayer.moveFromLabelImg(servers.model, servers.bdv));
 			gbc.gridy = 4;
+			gbc.gridwidth = 2;
 			bottomPanel.add(segmenterAdderButton, gbc);
+
+			gbc.gridx = 2;
+			gbc.gridwidth = 1;
+			segmenterShowerButton = new JButton("To Fiji");
+			segmenterShowerButton.addActionListener(l
+					-> ImageJFunctions.show(segLayer.getImg(), "SAI segmentation in: "+servers.getBdvName()) );
+			bottomPanel.add(segmenterShowerButton, gbc);
 		}
 
 		add(bottomPanel, BorderLayout.SOUTH);
@@ -193,6 +202,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
 	private final String PROCESS_INCLUDE_BORDERS = "Include the boundary-touching cells";
 	private JButton segmenterAdderButton = null;
+	private JButton segmenterShowerButton = null;
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();

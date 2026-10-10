@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * This is a general backbone for fillers that take any given BDV source,
  * its current view on the screen (remember, Labkit is GUI app not for
- * batch processing), run segmentation {@link #segment(Img, Img)} of it,
- * and move the obtained segmentation to the currently selected Label.
+ * batch processing), run segmentation {@link #segment(Img, Img, int[])}
+ * of it, and move the obtained segmentation to the currently selected Label.
  */
 public abstract class AbstractSegFill {
 
@@ -41,6 +41,13 @@ public abstract class AbstractSegFill {
 
 	public String getBdvName() {
 		return bdv.getViewerPanel().getName();
+	}
+
+	/**
+	 * @return Labels layer (model) to which the obtained 2D segmentations are fed into.
+	 */
+	public LabelingModel getLabelingModel() {
+		return model;
 	}
 
 	/**

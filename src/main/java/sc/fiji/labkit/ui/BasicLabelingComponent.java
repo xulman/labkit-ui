@@ -37,6 +37,11 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.DisplayMode;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.Point;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
 import sc.fiji.labkit.ui.bdv.BdvLayerLink;
@@ -48,7 +53,7 @@ import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
-import sc.fiji.labkit.ui.utils.LabkitUtils;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -139,7 +144,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 			bdvHandle, model, actionsAndBehaviours);
 		final SelectLabelController selectLabelController =
 			new SelectLabelController(bdvHandle, model, actionsAndBehaviours);
-		//
+
 		//pass the Labkit's main window (JFrame) title to BDV's JPanel
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
@@ -152,34 +157,21 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), authKey);
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
 		//
+		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
+				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
+		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
+		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC = localSegImg.getSAC(sources.get(sources.size() - 1));
+		bdvHandle.getViewerPanel().state().addSource(localSegImgAsSAC);
+		bdvHandle.getViewerPanel().state().setSourceActive(localSegImgAsSAC, true);
+		//
+		SAI<UnsignedShortType> sai = new SAI<>(bdvPromptsController, remoteSegFill, model, localSegImg);
+
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
 		brushController.setPlanarMode(true);
 		remoteSegFill.setOverlapping(true);
-		//
-		//register handlers!
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
-				remoteSegFill::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (original)");
-					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					remoteSegFill.updateOrigImageForSource((SourceAndConverter)sac, e);
-					remoteSegFill.segment(e.asXYXY());
-					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
-				});
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
-				remoteSegFill::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (contrast)");
-					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
-					remoteSegFill.segment(e.asXYXY());
-					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
-				});
 
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
+			floodFillController, selectLabelController, planarModeController, sai);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
