@@ -10,8 +10,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class Remote2dSegFiller {
-	public Remote2dSegFiller(final String url) throws IOException {
+	public Remote2dSegFiller(final String url, final String authKey) throws IOException {
 		this.url = url;
+		this.authKey = authKey;
 		//this.updateAvailableMethods();
 	}
 
@@ -22,7 +23,7 @@ public class Remote2dSegFiller {
 	public void updateAvailableMethods() throws IOException {
 		lastSeenAvailableMethods.clear();
 		try {
-			lastSeenAvailableMethods.addAll(RemoteSegmenterCommunications.listAvailableNetworks(url));
+			lastSeenAvailableMethods.addAll(RemoteSegmenterCommunications.listAvailableNetworks(url, authKey));
 		}
 		catch (IOException e) {
 			isAlive = false;
@@ -38,6 +39,7 @@ public class Remote2dSegFiller {
 	}
 
 	private final String url;
+	private final String authKey;
 	private final List<String> lastSeenAvailableMethods = new ArrayList<>(0);
 
 	private boolean isAlive = false;
@@ -60,7 +62,7 @@ public class Remote2dSegFiller {
 	public <IT extends RealType<IT>, MT extends IntegerType<MT>>
 	void segment(final Img<IT> inputImg, final Img<MT> maskImg) {
 		try {
-			RemoteSegmenterCommunications.runRemoteSegmentation2D(url, inputImg, maskImg, selectedMethod);
+			RemoteSegmenterCommunications.runRemoteSegmentation2D(url, authKey, inputImg, maskImg, selectedMethod);
 		} catch (IOException e) {
 			System.out.println("ERROR: "+this+":\n"+e.getMessage());
 			Remote2dSegFillers.zeroMask(maskImg);

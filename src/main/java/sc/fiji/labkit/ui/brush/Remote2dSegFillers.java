@@ -27,16 +27,16 @@ public class Remote2dSegFillers extends AbstractSegFill {
 	private final List<Remote2dSegFiller> servers = new ArrayList<>(20);
 	private int selectedServerIdx = 0;
 
-	public void setPoolOfServers(List<String> serverURLs) {
+	public void setPoolOfServers(List<String> serverURLs, final String authKey) {
 		servers.clear();
 		makeServerIdxWithinBounds();
-		serverURLs.forEach(url -> addToPoolOfServers(url));
+		serverURLs.forEach(url -> addToPoolOfServers(url, authKey));
 	}
 
-	public void addToPoolOfServers(final String url) {
+	public void addToPoolOfServers(final String url, final String authKey) {
 		if (findServerObj(url) == null) {
 			try {
-				Remote2dSegFiller server = new Remote2dSegFiller(url);
+				Remote2dSegFiller server = new Remote2dSegFiller(url, authKey);
 				new URL(url); //only to just-in-time possibly trigger a MalformedURL exception...
 				servers.add(server);
 				server.updateAvailableMethods();
