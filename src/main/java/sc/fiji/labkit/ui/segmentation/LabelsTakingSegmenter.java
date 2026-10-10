@@ -120,7 +120,9 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 
 	@Override
 	public int[] suggestCellSize(ImgPlus<?> image) {
-		return new int[] { 150, 150 };
+		final int[] cellSize = new int[image.numDimensions()];
+		Arrays.fill(cellSize, 150);
+		return cellSize;
 	}
 
 	@Override
