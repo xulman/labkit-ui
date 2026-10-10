@@ -37,6 +37,10 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.DisplayMode;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.Point;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
 import sc.fiji.labkit.ui.bdv.BdvLayerLink;
@@ -48,7 +52,6 @@ import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
-import sc.fiji.labkit.ui.utils.LabkitUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -151,6 +154,28 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final String authKey = "O6MmRHBdfRA24uTYvbsdm_Yi6ZBEj_tYK-oO6EM8qPY";
 		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), authKey);
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
+
+		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
+				= DiskCachedCellSegmentationImg.create(model.labeling().get());
+
+		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
+		bdvHandle.getViewerPanel().state().addSource( localSegImg.getSAC(sources.get(sources.size() - 1)) );
+
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
+				remoteSegFill::getEnabled,
+				e -> {
+					System.out.println("Shuffling selected label into localSegImg");
+					final double[] pos = new double[] {e.getMinX(), e.getMinY(), 0};
+					final AffineTransform3D screenToSourceT = e
+							.getGlobalToScreenTransform()
+							.concatenate(model.labelTransformation())
+							.inverse();
+					screenToSourceT.apply(pos,pos);
+					final Point p = new Point(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
+					localSegImg.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
+					ImageJFunctions.show(localSegImg.getImg());
+		});
+
 		//
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
 		brushController.setPlanarMode(true);
