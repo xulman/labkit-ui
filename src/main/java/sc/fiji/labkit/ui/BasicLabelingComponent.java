@@ -148,7 +148,8 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdvHandle);
 		//
 		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvPromptsController, model);
-		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100") );
+		final String authKey = "O6MmRHBdfRA24uTYvbsdm_Yi6ZBEj_tYK-oO6EM8qPY";
+		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), authKey);
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
 		//
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
