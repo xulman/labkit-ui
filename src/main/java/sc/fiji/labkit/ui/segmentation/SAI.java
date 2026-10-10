@@ -8,8 +8,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
+import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import sc.fiji.labkit.ui.brush.BdvPromptsController;
-import sc.fiji.labkit.ui.brush.Remote2dSegFillers;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
 /**
@@ -24,7 +24,7 @@ import sc.fiji.labkit.ui.models.LabelingModel;
  */
 public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 	public SAI(final BdvPromptsController bdvPromptsController,
-	           final Remote2dSegFillers segFillers,
+	           final AbstractSegFill segFillers,
 	           final LabelingModel model,
 	           DiskCachedCellSegmentationImg<ST> segLayer) {
 
@@ -43,13 +43,13 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 
 	private final BdvPromptsController bdvPromptsController;
 	private final BdvHandle bdvHandle;
-	private final Remote2dSegFillers segFillers;
+	private final AbstractSegFill segFillers;
 	private final LabelingModel model;
 	private final DiskCachedCellSegmentationImg<ST> segLayer;
 
 	public BdvPromptsController getBdvPromptsController() { return bdvPromptsController; }
 	public BdvHandle getBdvHandle() { return bdvHandle; }
-	public Remote2dSegFillers getSegFillers() { return segFillers; }
+	public AbstractSegFill getSegFillers() { return segFillers; }
 	public LabelingModel getLabelingModel() { return model; }
 	public DiskCachedCellSegmentationImg<ST> getSegLayer() { return segLayer; }
 
