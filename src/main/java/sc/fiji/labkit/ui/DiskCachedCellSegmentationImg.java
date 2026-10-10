@@ -1,10 +1,13 @@
 package sc.fiji.labkit.ui;
 
+import bdv.util.BdvHandle;
 import bdv.util.RandomAccessibleIntervalMipmapSource4D;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
+import net.imglib2.Point;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.fill.FloodFill;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
@@ -23,6 +26,7 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.view.Views;
 import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.labeling.Labeling;
+import sc.fiji.labkit.ui.models.LabelingModel;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
@@ -68,6 +72,44 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		return segSAC;
 	}
 
+
+	/**
+	 * The method searches the current BDV view/display to find any current active labels
+	 * in the view, and {@link #moveFromLabelImg(Labeling, Label, Localizable)}.
+	 */
+	public void moveFromLabelImg(final LabelingModel model, final BdvHandle bdvHandle) {
+		final AffineTransform3D globalToScreen =  new AffineTransform3D();
+		bdvHandle.getViewerPanel().state().getViewerTransform(globalToScreen);  //global to screen
+		globalToScreen.concatenate(model.labelTransformation());                //model gives: source to global
+		final AffineTransform3D screenToSource = globalToScreen.inverse();
+
+		final int screenW = bdvHandle.getViewerPanel().getDisplayComponent().getWidth();
+		final int screenH = bdvHandle.getViewerPanel().getDisplayComponent().getHeight();
+
+		final RandomAccess<LabelingType<Label>> ra = model.labeling().get().randomAccess();
+		final Label selectedLabel = model.selectedLabel().get();
+		boolean foundAtLeastOne = false;
+
+		final Point p = new Point(3);
+		final double[] pos = new double[3];
+
+		for (int y = 0; y < screenH; y++) {
+			for (int x = 0; x < screenW; x++) {
+				pos[0] = x; pos[1] = y; pos[2] = 0.0;
+				screenToSource.apply(pos,pos);
+				p.setPosition(Math.round(pos[0]), 0);
+				p.setPosition(Math.round(pos[1]), 1);
+				p.setPosition(Math.round(pos[2]), 2);
+				if (ra.setPositionAndGet(p).contains(selectedLabel)) {
+					System.out.println("Discovered label '"+selectedLabel.name()+"' at ["+x+","+y+"], moving to segmentation layer...");
+					moveFromLabelImg(model.labeling().get(), selectedLabel, p);
+					foundAtLeastOne = true;
+				}
+			}
+		}
+		System.out.println("Discovering label '"+selectedLabel.name()+"' is done.");
+		if (foundAtLeastOne) bdvHandle.getViewerPanel().requestRepaint();
+	}
 
 	public void copyFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
 		if (!labeling.getAt(seedPos).contains(label)) return;
