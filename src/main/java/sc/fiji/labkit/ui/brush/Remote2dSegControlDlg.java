@@ -2,6 +2,7 @@ package sc.fiji.labkit.ui.brush;
 
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,8 +26,8 @@ public class Remote2dSegControlDlg extends JPanel {
 		frame.setVisible(false);
 	}
 
-	public Remote2dSegControlDlg(final Remote2dSegFillers servers, DiskCachedCellSegmentationImg<?> segLayer) {
-		this.servers = servers;
+	public Remote2dSegControlDlg(final SAI sai) {
+		this.servers = sai.getSegFillers();
 
 		setLayout(new BorderLayout(10, 10));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -164,11 +165,11 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.gridy = 3;
 		bottomPanel.add(cb_showSegTgt, gbc);
 
-		if (segLayer != null) {
+		if (sai != null) {
 			// Add segmentation buttons
 			segmenterAdderButton = new JButton("Submit to segmentation");
 			//segmenterAdderButton.addActionListener(segLayer.moveFromLabelImg()
-			servers.get
+			//sai.getSegLayer().moveFromLabelImg(sai.getLabelingModel().labeling().get(), hfjask);
 			gbc.gridy = 4;
 			gbc.gridwidth = 2;
 			bottomPanel.add(segmenterAdderButton, gbc);
@@ -177,7 +178,7 @@ public class Remote2dSegControlDlg extends JPanel {
 			gbc.gridwidth = 1;
 			segmenterShowerButton = new JButton("To Fiji");
 			segmenterShowerButton.addActionListener(l ->
-					ImageJFunctions.show(segLayer.getImg(), "SAI segmentation in: "+servers.getBdvName()) );
+					ImageJFunctions.show(sai.getSegLayer().getImg(), "SAI segmentation in: "+servers.getBdvName()) );
 			bottomPanel.add(segmenterShowerButton, gbc);
 		}
 
