@@ -23,6 +23,12 @@ import sc.fiji.labkit.ui.models.LabelingModel;
  * @param <ST> pixel type output segmentation layer
  */
 public class SAI <ST extends RealType<ST> & NativeType<ST>> {
+	/**
+	 * @param bdvPromptsController Manages services (prompts entering, listeners, fresh views data) around underlying BDV
+	 * @param segFillers Delivers segmentation for the prompted content into the Labkit's labels layer
+	 * @param model Labkit's labels layer (see active label, add/remove labels, etc.)
+	 * @param segLayer New (on Labkit) memory into which segments from Labkit's layers are moved
+	 */
 	public SAI(final BdvPromptsController bdvPromptsController,
 	           final AbstractSegFill segFillers,
 	           final LabelingModel model,
