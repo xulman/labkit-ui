@@ -30,6 +30,7 @@
 package sc.fiji.labkit.ui.panel;
 
 import org.scijava.ui.behaviour.util.RunnableAction;
+import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.brush.FloodFillController;
 import sc.fiji.labkit.ui.brush.LabelBrushController;
 import sc.fiji.labkit.ui.brush.PlanarModeController;
@@ -102,7 +103,7 @@ public class LabelToolsPanel extends JPanel {
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
 		PlanarModeController planarModeController, Remote2dSegFillers segFill,
-		SegmentationModel segmentationModel)
+		DiskCachedCellSegmentationImg<?> segLayer)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
@@ -119,7 +120,7 @@ public class LabelToolsPanel extends JPanel {
 			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
 					segFill::setEnabled, false, "/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(segFill, segmentationModel);
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(segFill, segLayer);
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time

@@ -40,6 +40,7 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.Point;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
@@ -52,6 +53,7 @@ import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -148,6 +150,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
 
+
 		final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdvHandle);
 		//
 		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvPromptsController, model);
@@ -156,7 +159,11 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
 
 		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
-				= DiskCachedCellSegmentationImg.create(model.labeling().get());
+				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
+
+		SAI<UnsignedShortType> sai = new SAI<>(bdvHandle, model, localSegImg);
+		sai.set2dSegFillers(remoteSegFill);
+
 
 		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
 		bdvHandle.getViewerPanel().state().addSource( localSegImg.getSAC(sources.get(sources.size() - 1)) );
@@ -174,10 +181,8 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 					final Point p = new Point(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
 					localSegImg.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
 					bdvHandle.getViewerPanel().requestRepaint();
-					ImageJFunctions.show(localSegImg.getImg());
 		});
 
-		//
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
 		brushController.setPlanarMode(true);
 		remoteSegFill.setOverlapping(true);
@@ -205,7 +210,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 				});
 
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
+			floodFillController, selectLabelController, planarModeController, remoteSegFill, localSegImg);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}

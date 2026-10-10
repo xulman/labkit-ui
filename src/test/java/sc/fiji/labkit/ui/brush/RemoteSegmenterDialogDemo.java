@@ -26,7 +26,6 @@ public class RemoteSegmenterDialogDemo {
 				bdv = BdvFunctions.show(data.getImgPlus().getImg(), "blobs").getBdvHandle();
 				DatasetInputImage datasetInputImage = new DatasetInputImage(data.getImgPlus());
 				model = new ImageLabelingModel(datasetInputImage);
-				segModel = new DefaultSegmentationModel(new Context(), datasetInputImage);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -36,7 +35,7 @@ public class RemoteSegmenterDialogDemo {
 			segmenters.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), "foobarsecret" );
 			segmenters.setSameMethodOnAllServers("cellpose.original");
 
-			Remote2dSegControlDlg dlg = new Remote2dSegControlDlg(segmenters, segModel);
+			Remote2dSegControlDlg dlg = new Remote2dSegControlDlg(segmenters, null);
 			dlg.createMainFrame();
 			dlg.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			dlg.showMainFrame();
