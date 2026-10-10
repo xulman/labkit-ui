@@ -83,7 +83,10 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 
 	private SourceAndConverter<T> createSAC(final SourceAndConverter<?> labellingSAC) {
 		final RandomAccessibleInterval<T>[] mipmapImgs = new RandomAccessibleInterval[1];
-		mipmapImgs[0] = segImg.numDimensions() >= 4 ? segImg : Views.addDimension(segImg, 0,0);
+		RandomAccessibleInterval<T> segImgAs4D = segImg;
+		if (segImgAs4D.numDimensions() == 2) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
+		if (segImgAs4D.numDimensions() == 3) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
+		mipmapImgs[0] = segImgAs4D;
 		final AffineTransform3D[] mipmapTransforms = new AffineTransform3D[] {new AffineTransform3D()};
 		labellingSAC.getSpimSource().getSourceTransform(0, 0, mipmapTransforms[0]);
 		final VoxelDimensions voxelDimensions = labellingSAC.getSpimSource().getVoxelDimensions();
