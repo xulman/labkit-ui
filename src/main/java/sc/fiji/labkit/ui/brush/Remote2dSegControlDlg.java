@@ -168,8 +168,8 @@ public class Remote2dSegControlDlg extends JPanel {
 		if (segLayer != null) {
 			// Add segmentation buttons
 			segmenterAdderButton = new JButton("Submit to segmentation");
-			//segmenterAdderButton.addActionListener(segLayer.moveFromLabelImg()
-			//sai.getSegLayer().moveFromLabelImg(sai.getLabelingModel().labeling().get(), hfjask);
+			segmenterAdderButton.addActionListener(l
+					-> segLayer.moveFromLabelImg(servers.model, servers.bdv));
 			gbc.gridy = 4;
 			gbc.gridwidth = 2;
 			bottomPanel.add(segmenterAdderButton, gbc);
@@ -177,8 +177,8 @@ public class Remote2dSegControlDlg extends JPanel {
 			gbc.gridx = 2;
 			gbc.gridwidth = 1;
 			segmenterShowerButton = new JButton("To Fiji");
-			segmenterShowerButton.addActionListener(l ->
-					ImageJFunctions.show(segLayer.getImg(), "SAI segmentation in: "+servers.getBdvName()) );
+			segmenterShowerButton.addActionListener(l
+					-> ImageJFunctions.show(segLayer.getImg(), "SAI segmentation in: "+servers.getBdvName()) );
 			bottomPanel.add(segmenterShowerButton, gbc);
 		}
 
