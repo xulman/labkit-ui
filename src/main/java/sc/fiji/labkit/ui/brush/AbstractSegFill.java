@@ -51,17 +51,17 @@ public abstract class AbstractSegFill {
 	 * @param fromThisRawImage Input Float32 image to be segmented
 	 * @param fillThisMask Output UInt16 image with instance segmentation
 	 */
-	public abstract void segment(Img<FloatType> fromThisRawImage, Img<UnsignedShortType> fillThisMask);
+	public abstract void segment(Img<FloatType> fromThisRawImage, Img<UnsignedShortType> fillThisMask, final int[] promptBoxXYXY);
 
 	/**
-	 * A public shortcut to call {@link #segment()} on internal re-usable/cached {@link #rawImg}
-	 * to internal re-usable/cached {@link #segImg}. It is advisable to call
+	 * A public shortcut to call {@link #segment(Img, Img, int[])} on internal re-usable/cached
+	 * {@link #rawImg} to internal re-usable/cached {@link #segImg}. It is advisable to call
 	 * {@link #updateOrigImageForSource(SourceAndConverter, BdvPromptsEvent)} or
 	 * {@link #updateConvImageForSource(SourceAndConverter, BdvPromptsEvent)} to
 	 * have the cache images (possibly!) properly setup and updated.
 	 * This story typically ends with {@link #updateLabelsFrom(Img, BdvPromptsEvent)}.
 	 */
-	public void segment() { segment(rawImg, segImg); }
+	public void segment(final int[] promptBoxXYXY) { segment(rawImg, segImg, promptBoxXYXY); }
 
 	/**
 	 * An indicator for the implementing filler to see if it is allowed to operate.

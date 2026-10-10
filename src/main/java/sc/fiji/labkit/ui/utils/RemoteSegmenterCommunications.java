@@ -87,6 +87,7 @@ public class RemoteSegmenterCommunications {
 			final String authKey,
 			final Img<IT> inputImg,
 			final Img<MT> maskImg,
+			final int[] promptBoxXYXY,
 			final String methodName) throws IOException {
 		if (inputImg.numDimensions() < 2 || maskImg.numDimensions() < 2 ||
 				inputImg.dimension(0) != maskImg.dimension(0) ||
@@ -97,8 +98,8 @@ public class RemoteSegmenterCommunications {
 		}
 
 		final String serverCMD = "/segmentation_2D/on_posted_stream_of/"+
-				inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/use/"+methodName;
-				//inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/normalize_it_then_use/"+methodName;
+				inputImg.dimension(0)+"/"+inputImg.dimension(1)+"/use/"+methodName+
+				"/prompt_box/"+promptBoxXYXY[0]+"/"+promptBoxXYXY[1]+"/"+promptBoxXYXY[2]+"/"+promptBoxXYXY[3];
 		URL url = new URL(serverURL+serverCMD);
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
 		comm.setRequestMethod("POST");

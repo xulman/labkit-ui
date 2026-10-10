@@ -107,12 +107,12 @@ public class Remote2dSegFillers extends AbstractSegFill {
 	}
 
 	@Override
-	public void segment(Img<FloatType> fromThisRawImage, Img<UnsignedShortType> fillThisMask) {
+	public void segment(Img<FloatType> fromThisRawImage, Img<UnsignedShortType> fillThisMask, final int[] promptBoxXYXY) {
 		if (servers.isEmpty()) {
 			zeroMask(fillThisMask);
 		} else {
 			System.out.println("Using "+servers.get(selectedServerIdx));
-			servers.get(selectedServerIdx).segment(fromThisRawImage, fillThisMask);
+			servers.get(selectedServerIdx).segment(fromThisRawImage, fillThisMask, promptBoxXYXY);
 		}
 		if (segInputToFiji) { ImageJFunctions.show(fromThisRawImage); }
 		if (segOutputToFiji) { ImageJFunctions.show(fillThisMask); }

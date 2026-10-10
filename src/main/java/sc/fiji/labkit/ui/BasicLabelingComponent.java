@@ -163,7 +163,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 					System.out.println("DEBUG triggered prompt processor (original)");
 					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
 					remoteSegFill.updateOrigImageForSource((SourceAndConverter)sac, e);
-					remoteSegFill.segment();
+					remoteSegFill.segment(e.asXYXY());
 					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
 				});
 		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
@@ -172,7 +172,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 					  System.out.println("DEBUG triggered prompt processor (contrast)");
 					  SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
 					  remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
-					  remoteSegFill.segment();
+					  remoteSegFill.segment(e.asXYXY());
 					  remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
 				  });
 

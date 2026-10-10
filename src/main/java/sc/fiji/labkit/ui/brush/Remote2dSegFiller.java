@@ -60,9 +60,9 @@ public class Remote2dSegFiller {
 	}
 
 	public <IT extends RealType<IT>, MT extends IntegerType<MT>>
-	void segment(final Img<IT> inputImg, final Img<MT> maskImg) {
+	void segment(final Img<IT> inputImg, final Img<MT> maskImg, final int[] promptBoxXYXY) {
 		try {
-			RemoteSegmenterCommunications.runRemoteSegmentation2D(url, authKey, inputImg, maskImg, selectedMethod);
+			RemoteSegmenterCommunications.runRemoteSegmentation2D(url, authKey, inputImg, maskImg, promptBoxXYXY, selectedMethod);
 		} catch (IOException e) {
 			System.out.println("ERROR: "+this+":\n"+e.getMessage());
 			Remote2dSegFillers.zeroMask(maskImg);
