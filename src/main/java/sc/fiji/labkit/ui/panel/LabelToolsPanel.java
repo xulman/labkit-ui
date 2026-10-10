@@ -40,6 +40,7 @@ import sc.fiji.labkit.ui.brush.SelectLabelController;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import net.miginfocom.swing.MigLayout;
 import sc.fiji.labkit.ui.models.SegmentationModel;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -93,7 +94,7 @@ public class LabelToolsPanel extends JPanel {
 	private final LabelBrushController brushController;
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
-	private final Remote2dSegFillers segFillController;
+	private final SAI<?> sai;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -102,25 +103,24 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, Remote2dSegFillers segFill,
-		DiskCachedCellSegmentationImg<?> segLayer)
+		PlanarModeController planarModeController, SAI<?> sai)
 	{
 		this.brushController = brushController;
 		this.floodFillController = floodFillController;
 		this.selectLabelController = selectLabelController;
 		this.planarModeController = planarModeController;
-		this.segFillController = segFill;
+		this.sai = sai;
 
 		setLayout(new MigLayout("flowy, insets 0, gap 4pt, top", "[][][][][]",
 			"[]push"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 		initActionButtons();
 
-		if (segFill != null) {
+		if (sai != null) {
 			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
-					segFill::setEnabled, false, "/images/sai.png");
+					l -> sai.getSegFillers().setEnabled(l), false, "/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(segFill, segLayer);
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(sai);
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
@@ -246,12 +246,12 @@ public class LabelToolsPanel extends JPanel {
 	private JCheckBox initOverrideCheckBox() {
 		JCheckBox checkBox = new JCheckBox("allow overlapping labels");
 		checkBox.setOpaque(false);
-		checkBox.setSelected( segFillController.getOverlapping() );
+		if (sai != null) checkBox.setSelected( sai.getSegFillers().getOverlapping() );
 		checkBox.addItemListener(action -> {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
 			floodFillController.setOverlapping(overlapping);
-			if (segFillController != null) segFillController.setOverlapping(overlapping);
+			if (sai != null) sai.getSegFillers().setOverlapping(overlapping);
 		});
 		return checkBox;
 	}

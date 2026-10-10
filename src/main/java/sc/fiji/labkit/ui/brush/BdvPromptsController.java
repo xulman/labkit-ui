@@ -19,25 +19,6 @@ import java.util.Map;
  * register their listeners to deliver the actual work...
  */
 public class BdvPromptsController implements AutoCloseable {
-	// -------------- singleton stuff --------------
-	//TODO: possibly don't use singleton
-	private BdvPromptsController() {
-		//to make IDE happy to see all paths initiating final attribs
-		bdvHandle = null;
-		bdvPromptsService = null;
-		originalViewsService = null;
-	}
-
-	public static BdvPromptsController obtain() {
-		if (instance == null) {
-			throw new IllegalStateException("BdvPromptsController has not yet been initialized");
-		}
-		return instance;
-	}
-
-	private static BdvPromptsController instance = null;
-
-	// -------------- object stuff --------------
 	public BdvPromptsController(final BdvHandle bdvHandle)
 	{
 		this.bdvHandle = bdvHandle;
@@ -50,8 +31,6 @@ public class BdvPromptsController implements AutoCloseable {
 		BdvPromptsBehaviours.addPromptActionsTo(bdvPromptsService);
 		// --- extra 3D navigation: ctrl I/J/K side views, ctrl N/M slicing
 		BdvPromptsBehaviours.addNavigationActionsTo(bdvPromptsService);
-
-		instance = this;
 	}
 
 	public <T extends RealType<T>> void registerNewSAC(SourceAndConverter<T> sac) {
