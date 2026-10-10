@@ -154,8 +154,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
 		brushController.setPlanarMode(true);
-		brushController.setOverlapping( remoteSegFill.getOverlapping() );
-		floodFillController.setOverlapping( remoteSegFill.getOverlapping() );
+		remoteSegFill.setOverlapping(true);
 		//
 		//register handlers!
 		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,

@@ -245,6 +245,7 @@ public class LabelToolsPanel extends JPanel {
 	private JCheckBox initOverrideCheckBox() {
 		JCheckBox checkBox = new JCheckBox("allow overlapping labels");
 		checkBox.setOpaque(false);
+		checkBox.setSelected( segFillController.getOverlapping() );
 		checkBox.addItemListener(action -> {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);
