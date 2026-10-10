@@ -144,12 +144,11 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 			bdvHandle, model, actionsAndBehaviours);
 		final SelectLabelController selectLabelController =
 			new SelectLabelController(bdvHandle, model, actionsAndBehaviours);
-		//
+
 		//pass the Labkit's main window (JFrame) title to BDV's JPanel
 		//so that a downstream code that works solely with that BDV
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
-
 
 		final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdvHandle);
 		//
@@ -157,60 +156,20 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final String authKey = "O6MmRHBdfRA24uTYvbsdm_Yi6ZBEj_tYK-oO6EM8qPY";
 		remoteSegFill.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), authKey);
 		remoteSegFill.setSameMethodOnAllServers("cellpose.original");
-
+		//
 		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
 				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
-
-		SAI<UnsignedShortType> sai = new SAI<>(bdvHandle, model, localSegImg);
-		sai.set2dSegFillers(remoteSegFill);
-
-
 		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
 		bdvHandle.getViewerPanel().state().addSource( localSegImg.getSAC(sources.get(sources.size() - 1)) );
-
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
-				remoteSegFill::getEnabled,
-				e -> {
-					System.out.println("Shuffling selected label into localSegImg");
-					final double[] pos = new double[] {e.getMinX(), e.getMinY(), 0};
-					final AffineTransform3D screenToSourceT = e
-							.getGlobalToScreenTransform()
-							.concatenate(model.labelTransformation())
-							.inverse();
-					screenToSourceT.apply(pos,pos);
-					final Point p = new Point(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
-					localSegImg.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
-					bdvHandle.getViewerPanel().requestRepaint();
-		});
+		//
+		SAI<UnsignedShortType> sai = new SAI<>(bdvPromptsController, remoteSegFill, model, localSegImg);
 
 		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
 		brushController.setPlanarMode(true);
 		remoteSegFill.setOverlapping(true);
-		//
-		//register handlers!
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
-				remoteSegFill::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (original)");
-					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					remoteSegFill.updateOrigImageForSource((SourceAndConverter)sac, e);
-					remoteSegFill.segment(e.asXYXY());
-					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
-				});
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
-				remoteSegFill::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (contrast)");
-					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
-					remoteSegFill.segment(e.asXYXY());
-					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
-				});
 
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController, remoteSegFill, localSegImg);
+			floodFillController, selectLabelController, planarModeController, sai);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
