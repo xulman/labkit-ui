@@ -120,7 +120,8 @@ public class LabelToolsPanel extends JPanel {
 			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
 					l -> sai.getSegFillers().setEnabled(l), false, "/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(sai);
+			final Remote2dSegControlDlg remoteSegGui   //casting guaranteed by construction in the caller...
+					= new Remote2dSegControlDlg((Remote2dSegFillers)sai.getSegFillers(), sai.getSegLayer());
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
