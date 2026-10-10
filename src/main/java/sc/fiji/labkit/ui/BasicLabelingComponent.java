@@ -165,16 +165,18 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 					remoteSegFill.updateOrigImageForSource((SourceAndConverter)sac, e);
 					remoteSegFill.segment(e.asXYXY());
 					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
+					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
 				});
 		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
-				  remoteSegFill::getEnabled,
-				  e -> {
-					  System.out.println("DEBUG triggered prompt processor (contrast)");
-					  SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					  remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
-					  remoteSegFill.segment(e.asXYXY());
-					  remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
-				  });
+				remoteSegFill::getEnabled,
+				e -> {
+					System.out.println("DEBUG triggered prompt processor (contrast)");
+					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
+					remoteSegFill.updateConvImageForSource((SourceAndConverter)sac, e);
+					remoteSegFill.segment(e.asXYXY());
+					remoteSegFill.updateLabelsFrom(remoteSegFill.getSegImg(), e);
+					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
+				});
 
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
 			floodFillController, selectLabelController, planarModeController, remoteSegFill, segmentationModel);
