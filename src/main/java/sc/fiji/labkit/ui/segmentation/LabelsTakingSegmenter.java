@@ -18,11 +18,13 @@ import sc.fiji.labkit.ui.models.SegmentationModel;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 	//methods from Segmenter
 	private final SegmentationModel segmentationModel;
 	private final Img<UnsignedShortType> persistentInstanceSegmentation;
+	private final AtomicInteger lastInstancePixelValue = new AtomicInteger(0);
 
 	public LabelsTakingSegmenter(SegmentationModel segmentationModel) {
 		this.segmentationModel = segmentationModel;
@@ -66,6 +68,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 	@Override
 	public void train(List<Pair<ImgPlus<?>, Labeling>> trainingData) {
 		//System.out.println("L2S training");
+		lastInstancePixelValue.incrementAndGet();
 	}
 
 	@Override
@@ -73,6 +76,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 		//System.out.println("L2S segmenter");
 		final Label selectedLabel = segmentationModel.imageLabelingModel().selectedLabel().get();
 		final int outputLabel = 1;
+		final int instanceVal = lastInstancePixelValue.get();
 		IntervalView<LabelingType<Label>> labelImage = Views.interval(segmentationModel.imageLabelingModel().labeling().get(), outputSegmentation);
 		if (persistentInstanceSegmentation != null) {
 			IntervalView<UnsignedShortType> instSegmentation = Views.interval(persistentInstanceSegmentation, outputSegmentation);
@@ -81,7 +85,7 @@ public class LabelsTakingSegmenter implements Segmenter, SegmentationPlugin {
 						  o.setReal( i.get() > 0 ? outputLabel : 0 ); //push previous segmentation results
 						  if (l.contains(selectedLabel)) {
 							  o.setReal(outputLabel);                  //write current (possibly new) result
-							  i.set(10);                               //memorize it too...
+							  i.set(instanceVal);                      //memorize it too...
 							  l.remove(selectedLabel);
 						  }
 					  });
