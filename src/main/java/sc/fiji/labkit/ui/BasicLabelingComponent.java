@@ -173,6 +173,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 					screenToSourceT.apply(pos,pos);
 					final Point p = new Point(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
 					localSegImg.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
+					bdvHandle.getViewerPanel().requestRepaint();
 					ImageJFunctions.show(localSegImg.getImg());
 		});
 
