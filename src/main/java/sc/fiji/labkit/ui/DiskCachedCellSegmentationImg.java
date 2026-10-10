@@ -38,6 +38,16 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	}
 
 	public DiskCachedCellSegmentationImg(T storageType, DiskCachedCellImgOptions storageOptions, Interval outImageSize) {
+		long pxCnt = 2;                        // for short-sized pixels
+		for (int i=0; i < outImageSize.numDimensions(); ++i) pxCnt *= outImageSize.dimension(i); // img size in Bytes
+		final long maxMemThreshold = 1L << 32; // 4GB
+
+		if (pxCnt > maxMemThreshold) {
+			System.out.println("WARN: BIG FAT WARNING:");
+			System.out.println("  Lazily preparing image for the instance segmentation that");
+			System.out.println("  can spin up to "+reportSize(pxCnt));
+		}
+		System.out.println("BTW, keeping aside "+reportSize(pxCnt)+" large buffer for the instance segmentation");
 
 		segImg = new DiskCachedCellImgFactory<>(storageType, storageOptions).create(outImageSize);
 		type = storageType.createVariable();
@@ -148,4 +158,17 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		public void setMax(double max) {
 		}
 	};
+
+	public String reportSize(long size) {
+		final long GB = 1L << 30;
+		final long MB = 1L << 20;
+		final long KB = 1L << 10;
+		if (size > GB) {
+			return ((float)size/(float)GB)+" GB";
+		} else if (size > MB) {
+			return ((float)size/(float)MB)+" MB";
+		} else {
+			return ((float)size/(float)KB)+" KB";
+		}
+	}
 }
