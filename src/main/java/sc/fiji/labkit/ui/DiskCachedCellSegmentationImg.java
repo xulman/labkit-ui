@@ -117,7 +117,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		final BiPredicate<LabelingType<Label>, T > filter
 				= (t, u ) -> t.contains(label) && u.getRealDouble() != maskValue;
 		type.setReal(maskValue);
-		FloodFill.fill(labeling, segImg, seedPos, type, shape, filter);
+		FloodFill.fill(labeling, Views.extendValue(segImg, maskValue), seedPos, type, shape, filter);
 	}
 
 	public void moveFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
@@ -131,7 +131,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 			return false;
 		};
 		type.setReal(maskValue);
-		FloodFill.fill(labeling, segImg, seedPos, type, shape, filter);
+		FloodFill.fill(labeling, Views.extendValue(segImg, maskValue), seedPos, type, shape, filter);
 	}
 
 
