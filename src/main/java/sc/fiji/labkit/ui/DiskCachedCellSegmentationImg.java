@@ -90,7 +90,8 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	}
 
 	public final Converter< T, ARGBType > converter = new RealARGBColorConverter<T>() {
-		public ARGBType[] colors = new ARGBType[] {
+		public final ARGBType black = new ARGBType(0x000000);
+		public final ARGBType[] colors = new ARGBType[] {
 				  new ARGBType(0xFF0000),
 				  new ARGBType(0x00FF00),
 				  new ARGBType(0x0000FF),
@@ -102,7 +103,8 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		@Override
 		public void convert(T input, ARGBType output) {
 			int index = (int)input.getRealDouble();
-			output.set( colors[ index % colors.length ] );
+			if (index == 0) output.set(black);
+			else output.set( colors[ index % colors.length ] );
 		}
 
 		@Override
