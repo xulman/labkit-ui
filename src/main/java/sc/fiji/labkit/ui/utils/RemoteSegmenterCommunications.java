@@ -25,23 +25,30 @@ public class RemoteSegmenterCommunications {
 	 * @param serverURL Make sure the URL starts with 'http://'.
 	 * @return The list, or null if there was any problem.
 	 */
-	public static List<String> listAvailableNetworks(final String serverURL)
-			throws IOException {
-		ListAvailableMethods methods = new ObjectMapper().readValue(
-				new URL(serverURL+"/segmentation_2D/list_available_methods"),
-				ListAvailableMethods.class );
-		if (methods == null || !methods.status.equals("OK")) return Collections.emptyList();
-		return methods.available_network_names;
+	public static List<String> listAvailableNetworks(
+			final String serverURL,
+			final String authKey) throws IOException {
+		HttpURLConnection comm = (HttpURLConnection) new URL(serverURL+"/segmentation_2D/list_available_methods").openConnection();
+		comm.setRequestProperty("X-API-Token", authKey);
+		try (InputStream is = comm.getInputStream()) {
+			ListAvailableMethods methods = new ObjectMapper().readValue(is, ListAvailableMethods.class);
+			if (methods == null || !"OK".equals(methods.status)) return Collections.emptyList();
+			return methods.available_network_names;
+		}
 	}
 
 
-	public static void testRoundTripTime(final String serverURL, final int packetSize)
+	public static void testRoundTripTime(
+			final String serverURL,
+			final String authKey,
+			final int packetSize)
 			throws IOException {
 		final String serverCMD = "/connection_test/data_transfer_times";
 		URL url = new URL(serverURL+serverCMD);
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
 		comm.setRequestMethod("POST");
 		comm.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+		comm.setRequestProperty("X-API-Token", authKey);
 		comm.setDoOutput(true);
 		comm.connect();
 
@@ -77,6 +84,7 @@ public class RemoteSegmenterCommunications {
 	public static <IT extends RealType<IT>, MT extends IntegerType<MT>>
 	void runRemoteSegmentation2D(
 			final String serverURL,
+			final String authKey,
 			final Img<IT> inputImg,
 			final Img<MT> maskImg,
 			final String methodName) throws IOException {
@@ -95,6 +103,7 @@ public class RemoteSegmenterCommunications {
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
 		comm.setRequestMethod("POST");
 		comm.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+		comm.setRequestProperty("X-API-Token", authKey);
 		comm.setDoOutput(true);
 		comm.connect();
 

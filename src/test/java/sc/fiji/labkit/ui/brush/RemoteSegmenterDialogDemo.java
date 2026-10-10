@@ -31,8 +31,9 @@ public class RemoteSegmenterDialogDemo {
 				throw new RuntimeException(e);
 			}
 
-			Remote2dSegFillers segmenters = new Remote2dSegFillers(bdv, model);
-			segmenters.setPoolOfServers( Arrays.asList("http://localhost:8000") );
+			final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdv);
+			Remote2dSegFillers segmenters = new Remote2dSegFillers(bdvPromptsController, model);
+			segmenters.setPoolOfServers( Arrays.asList("http://alfa.fi.muni.cz:8100"), "foobarsecret" );
 			segmenters.setSameMethodOnAllServers("cellpose.original");
 
 			Remote2dSegControlDlg dlg = new Remote2dSegControlDlg(segmenters, segModel);

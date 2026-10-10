@@ -10,11 +10,12 @@ public class RemoteSegmenterCommunication {
 
 	public static void main(String[] args) {
 		final String serverURL = "http://localhost:7999";
+		final String authKey = "kfjsdf";
 
 		try {
-			System.out.println(RemoteSegmenterCommunications.listAvailableNetworks(serverURL) );
+			System.out.println(RemoteSegmenterCommunications.listAvailableNetworks(serverURL, authKey) );
 			testRoundTripTime(serverURL, 102400);
-			RemoteSegmenterCommunications.testRoundTripTime(serverURL, 102400);
+			RemoteSegmenterCommunications.testRoundTripTime(serverURL, authKey, 102400);
 		} catch (Exception e) {
 			System.out.println("GOT AN ERROR:");
 			System.out.println(e.getMessage());
@@ -24,11 +25,14 @@ public class RemoteSegmenterCommunication {
 
 	public static void testRoundTripTime(final String serverURL, final int packetSize)
 			throws IOException, InterruptedException {
+		final String authKey = "kfjsdf";
 		final String serverCMD = "/connection_test/data_transfer_times";
+
 		URL url = new URL(serverURL+serverCMD);
 		HttpURLConnection comm = (HttpURLConnection)url.openConnection();
 		comm.setRequestMethod("POST");
 		comm.setRequestProperty("Content-Type","application/octet-stream"); //to prevent from 415 err code (Unsupported Media Type)
+		comm.setRequestProperty("X-API-Token", authKey);
 		comm.setDoOutput(true);
 		comm.connect();
 

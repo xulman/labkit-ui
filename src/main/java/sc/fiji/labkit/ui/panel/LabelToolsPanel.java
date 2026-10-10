@@ -92,7 +92,7 @@ public class LabelToolsPanel extends JPanel {
 	private final LabelBrushController brushController;
 	private final SelectLabelController selectLabelController;
 	private final PlanarModeController planarModeController;
-	private final AbstractSegFill segFillController;
+	private final Remote2dSegFillers segFillController;
 
 	private JPanel brushOptionsPanel;
 	private final ButtonGroup group = new ButtonGroup();
@@ -101,7 +101,7 @@ public class LabelToolsPanel extends JPanel {
 
 	public LabelToolsPanel(LabelBrushController brushController,
 		FloodFillController floodFillController, SelectLabelController selectLabelController,
-		PlanarModeController planarModeController, AbstractSegFill segFill,
+		PlanarModeController planarModeController, Remote2dSegFillers segFill,
 		SegmentationModel segmentationModel)
 	{
 		this.brushController = brushController;
@@ -117,11 +117,9 @@ public class LabelToolsPanel extends JPanel {
 
 		if (segFill != null) {
 			final JToggleButton segButton = addActionButton(SAMFILL_LABEL_TOOL_TIP,
-					(isToggled) -> { if (isToggled) segFill.segmenter.startPrompts(); else segFill.segmenter.stopPrompts(); },
-			false,
-			"/images/sai.png");
+					segFill::setEnabled, false, "/images/sai.png");
 			//
-			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg((Remote2dSegFillers)segFill, segmentationModel);
+			final Remote2dSegControlDlg remoteSegGui = new Remote2dSegControlDlg(segFill, segmentationModel);
 			remoteSegGui.createMainFrame();
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
@@ -247,6 +245,7 @@ public class LabelToolsPanel extends JPanel {
 	private JCheckBox initOverrideCheckBox() {
 		JCheckBox checkBox = new JCheckBox("allow overlapping labels");
 		checkBox.setOpaque(false);
+		checkBox.setSelected( segFillController.getOverlapping() );
 		checkBox.addItemListener(action -> {
 			boolean overlapping = action.getStateChange() == ItemEvent.SELECTED;
 			brushController.setOverlapping(overlapping);

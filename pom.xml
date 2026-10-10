@@ -266,16 +266,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ai.nets</groupId>
-			<artifactId>samj-BDV</artifactId>
-			<version>0.0.6-SNAPSHOT</version>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-prompts</artifactId>
+			<version>0.0.2</version>
 		</dependency>
-        <dependency>
-            <groupId>ai.nets</groupId>
-            <artifactId>samj</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
 	<repositories>

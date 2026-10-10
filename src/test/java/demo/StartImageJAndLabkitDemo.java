@@ -30,17 +30,30 @@
 package demo;
 
 import net.imagej.ImageJ;
+import net.imglib2.Cursor;
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import sc.fiji.labkit.ui.plugin.LabkitPlugin;
 
 import java.io.IOException;
 
 public class StartImageJAndLabkitDemo {
 
+	public static Img<UnsignedShortType> getImg() {
+		final Img<UnsignedShortType> img = ArrayImgs.unsignedShorts(256, 256, 64);
+		final Cursor<UnsignedShortType> c = img.localizingCursor();
+		while (c.hasNext()) {
+			c.fwd();
+			c.get().set((c.getIntPosition(0) / 32 + c.getIntPosition(1) / 32 + c.getIntPosition(2) / 8) % 2 * 1000 + 100);
+		}
+		return img;
+	}
+
 	public static void main(String... args) throws IOException {
 		ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		Object data = imageJ.io().open("C:\\Users\\ulman\\Downloads\\Blobs.tif");
-		imageJ.ui().show(data);
+		imageJ.ui().show( getImg() );
 		imageJ.command().run(LabkitPlugin.class, true);
 	}
 }

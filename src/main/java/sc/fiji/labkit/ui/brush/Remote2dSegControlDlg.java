@@ -75,16 +75,35 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.weightx = 0.3;
 		bottomPanel.add(addButton, gbc);
 		addButton.addActionListener(l -> {
-			final String serverURLs = JOptionPane.showInputDialog(
-				this,
-				"Enter an URL (example: http://127.0.0.1:8000),\nor several space-separated URLs:",
-				"Add Remote 2D Segmentation Servers",
-				JOptionPane.PLAIN_MESSAGE);
-			if (serverURLs == null) return; //the "Cancel" button
+			final JTextField urlsField = new JTextField(30);
+			final JPasswordField keyField = new JPasswordField(30);
 
-			Arrays.stream(serverURLs.split(" "))
+			final JPanel p = new JPanel(new GridBagLayout());
+			final GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;                       // one column; gridy stays RELATIVE => rows stack
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.anchor = GridBagConstraints.WEST;
+			c.insets = new Insets(2, 0, 2, 0);
+			p.add(new JLabel("Enter an URL (example: http://127.0.0.1:8000),"), c);
+			p.add(new JLabel("or several space-separated URLs:"), c);
+			p.add(urlsField, c);
+			c.insets = new Insets(12, 0, 2, 0); // a bit of a gap before the key
+			p.add(new JLabel("Access key (used for all servers above):"), c);
+			c.insets = new Insets(2, 0, 2, 0);
+			p.add(keyField, c);
+
+			final int ret = JOptionPane.showConfirmDialog(
+				this, p,
+				"Add Remote 2D Segmentation Servers",
+				JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.PLAIN_MESSAGE);
+			if (ret != JOptionPane.OK_OPTION) return; //the "Cancel" button or closed window
+
+			final String key = new String(keyField.getPassword()).trim();
+
+			Arrays.stream(urlsField.getText().trim().split("\\s+"))
 					.filter(s -> !s.isEmpty())
-					.forEach(servers::addToPoolOfServers);
+					.forEach(url -> servers.addToPoolOfServers(url, key));
 
 			updateServerListDropdown();
 			repaintServerMethodsList();
