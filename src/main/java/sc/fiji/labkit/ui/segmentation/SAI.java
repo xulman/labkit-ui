@@ -1,6 +1,14 @@
 package sc.fiji.labkit.ui.segmentation;
 
 import bdv.interactive.behaviours.BdvPromptsBehaviours;
+import bdv.interactive.plans.PlanReviewer;
+import bdv.interactive.plans.PlanUtils;
+import bdv.interactive.plans.SeedsPlanner;
+import bdv.interactive.plans.SeedsUtils;
+import bdv.interactive.plans.TrackingPlanner;
+import bdv.interactive.services.BdvPromptsEvent;
+import bdv.interactive.services.BdvPromptsListener;
+import bdv.interactive.services.BdvPromptsService;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.Point;
@@ -11,6 +19,10 @@ import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import sc.fiji.labkit.ui.brush.BdvPromptsController;
 import sc.fiji.labkit.ui.models.LabelingModel;
+
+import javax.swing.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Everything that realizes SAI is kept here. This includes the BdvPrompts services,
@@ -61,6 +73,8 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 
 
 	private void registerListeners() {
+		/*
+		OBSOLETE
 		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
 				segFillers::getEnabled,
 				e -> {
@@ -75,27 +89,100 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 					segLayer.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
 					bdvHandle.getViewerPanel().requestRepaint();
 		});
+		BECAUSE THIS DOES IT BETTER:
+		segLayer.moveFromLabelImg(model, bdvHandle);
+		*/
 
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
-				segFillers::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (original)");
-					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					segFillers.updateOrigImageForSource((SourceAndConverter)sac, e);
-					segFillers.segment(e.asXYXY());
-					segFillers.updateLabelsFrom(segFillers.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
-				});
+		final BdvPromptsListener processPromptOnOriginalPixels = e -> {
+			SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
+			segFillers.updateOrigImageForSource((SourceAndConverter)sac, e);
+			segFillers.segment(e.asXYXY());
+			segFillers.updateLabelsFrom(segFillers.getSegImg(), e);
+			bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
+		};
+
+		final BdvPromptsListener processPromptOnConvertedPixels = e -> {
+			SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
+			segFillers.updateConvImageForSource((SourceAndConverter)sac, e);
+			segFillers.segment(e.asXYXY());
+			segFillers.updateLabelsFrom(segFillers.getSegImg(), e);
+			bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
+		};
 
 		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
-				segFillers::getEnabled,
-				e -> {
-					System.out.println("DEBUG triggered prompt processor (contrast)");
+				segFillers::getEnabled, processPromptOnConvertedPixels);
+
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
+				segFillers::getEnabled, processPromptOnOriginalPixels);
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
+				segFillers::getEnabled, processPromptOnOriginalPixels);
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_NEARER_SLICE,
+				segFillers::getEnabled, processPromptOnOriginalPixels);
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_FURTHER_SLICE,
+				segFillers::getEnabled, processPromptOnOriginalPixels);
+
+		final AtomicBoolean isPlanRunning = new AtomicBoolean(false);
+		final SeedsPlanner.SeedsFinder seedsFinder = SeedsPlanner.contrastThresholdingSeeds(
+				bdvPromptsController.getConvViewServiceFor(
+						(SourceAndConverter)bdvHandle.getViewerPanel().state().getSources().get(0) ).getConverterSetup(),
+				SeedsUtils.giveBitFlagForMildDebug());
+		final TrackingPlanner.LabelPresenceIndicator brightPixels = null; //TODO
+
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.MULTI_PROMPT,
+				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
 					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
-					segFillers.updateConvImageForSource((SourceAndConverter)sac, e);
-					segFillers.segment(e.asXYXY());
-					segFillers.updateLabelsFrom(segFillers.getSegImg(), e);
-					bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
+					segFillers.updateOrigImageForSource((SourceAndConverter)sac, e);
+					final List<BdvPromptsEvent> plan = SeedsPlanner.plan(e, segFillers.getRawImg(), seedsFinder);
+					System.out.println("J: " + plan.size() + " seed(s) found");
+					reviewThenRun(plan, "J: prompts at the found seeds",
+							bdvPromptsController.getBdvPromptsService(), processPromptOnOriginalPixels, isPlanRunning);
 				});
+
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.TRACKING_PROMPT,
+				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
+					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
+					reviewThenRun(plan, "K: prompts following the label",
+							bdvPromptsController.getBdvPromptsService(), processPromptOnOriginalPixels, isPlanRunning);
+				});
+		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.TRACKING_PROMPT_CONTRAST,
+				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
+					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
+					reviewThenRun(plan, "K: prompts following the label",
+							bdvPromptsController.getBdvPromptsService(), processPromptOnConvertedPixels, isPlanRunning);
+				});
+	}
+
+	/**
+	 * The plan is first shown in the {@link PlanReviewer}, and executed only if the user chooses "Proceed".
+	 * NB: the dialog is opened only after the current event (the end of the user's drag) has been
+	 * fully processed, and the guard 'isPlanRunning' is raised meanwhile, so no other plan starts.
+	 */
+	static void reviewThenRun(final List<BdvPromptsEvent> plan, final String title,
+	                          final BdvPromptsService service, final BdvPromptsListener consumer,
+	                          final AtomicBoolean isPlanRunning) {
+		if (plan.isEmpty()) return;
+		isPlanRunning.set(true);
+		SwingUtilities.invokeLater(() -> {
+			if (PlanReviewer.review(plan, service, title)) runPlan(plan, service, consumer, isPlanRunning);
+			else isPlanRunning.set(false);
+		});
+	}
+
+	/** The client's own "executor": off the EDT, so that the BDV shows every step. */
+	static void runPlan(final List<BdvPromptsEvent> plan, final BdvPromptsService service,
+	                    final BdvPromptsListener consumer, final AtomicBoolean isPlanRunning) {
+		if (plan.isEmpty()) return;
+		isPlanRunning.set(true);
+		new Thread(() -> {
+			try {
+				for (BdvPromptsEvent item : plan) {
+					PlanUtils.positionAndShowPromptAccordingToEvent(service, item);
+					consumer.onPromptEntered(item);
+				}
+			} finally {
+				service.hideBox();
+				isPlanRunning.set(false);
+			}
+		}, "Labkit SAI plan runner").start();
 	}
 }
