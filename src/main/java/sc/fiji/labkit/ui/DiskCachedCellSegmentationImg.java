@@ -69,8 +69,13 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 
 	public void moveFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
 		final double maskValue = lastUsedPixelValue.incrementAndGet();
-		final BiPredicate<LabelingType<Label>, T > filter
-				  = (t, u ) -> t.contains(label) && u.getRealDouble() != maskValue;
+		final BiPredicate<LabelingType<Label>, T > filter = (t, u ) -> {
+			if (t.contains(label)) {
+				t.remove(label);
+				return u.getRealDouble() != maskValue;
+			}
+			return false;
+		};
 		type.setReal(maskValue);
 		FloodFill.fill(labeling, segImg, seedPos, type, shape, filter);
 	}
