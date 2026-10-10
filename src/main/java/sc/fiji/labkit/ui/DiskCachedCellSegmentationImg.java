@@ -60,6 +60,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 
 
 	public void copyFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
+		if (!labeling.getAt(seedPos).contains(label)) return;
 		final double maskValue = lastUsedPixelValue.incrementAndGet();
 		final BiPredicate<LabelingType<Label>, T > filter
 				= (t, u ) -> t.contains(label) && u.getRealDouble() != maskValue;
@@ -68,6 +69,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	}
 
 	public void moveFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
+		if (!labeling.getAt(seedPos).contains(label)) return;
 		final double maskValue = lastUsedPixelValue.incrementAndGet();
 		final BiPredicate<LabelingType<Label>, T > filter = (t, u ) -> {
 			if (t.contains(label)) {
