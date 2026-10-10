@@ -1,7 +1,7 @@
 package sc.fiji.labkit.ui.brush;
 
 import bdv.interactive.services.BdvPromptsEvent;
-import bdv.interactive.services.OriginalViewsService;
+import bdv.interactive.services.BdvPromptsViewService;
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
@@ -109,7 +109,7 @@ public abstract class AbstractSegFill {
 				|| ctrl.getOrigViewService().hasChangedSince(cacheAtThisChangeCounter)) {
 			System.out.println("======> Fetching fresh orig view now, for source: "+sac.getSpimSource().getName());
 
-			OriginalViewsService.CapturedView<FloatType> view
+			BdvPromptsViewService.CapturedView<FloatType> view
 					= ctrl.getOrigViewService().getEventView(sac.getSpimSource(),
 					  new FloatType(), promptEvent, Interpolation.NLINEAR);
 			rawImg = view.getImage();
@@ -135,8 +135,8 @@ public abstract class AbstractSegFill {
 				  || ctrl.getConvViewServiceFor(sac).hasChangedSince(cacheAtThisChangeCounter)) {
 			System.out.println("======> Fetching fresh contrast-adjusted view now, for source: "+sac.getSpimSource().getName());
 
-			OriginalViewsService.CapturedView<FloatType> view
-					= ctrl.getConvViewServiceFor(sac).getEventView(sac.getSpimSource(),
+			BdvPromptsViewService.CapturedView<FloatType> view
+					= ctrl.getConvViewServiceFor(sac).getEventConvertedView(
 					new FloatType(), promptEvent, Interpolation.NLINEAR);
 			rawImg = view.getImage();
 			segImg = rawImg.factory().imgFactory(new UnsignedShortType()).create(rawImg);
