@@ -109,16 +109,15 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 			bdvHandle.getViewerPanel().requestRepaint(e.asInterval());
 		};
 
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
+		//a shortcut only...
+		//register 2D (and 3D) capable activities
+		final BdvPromptsService promptsService = bdvPromptsController.getBdvPromptsService();
+		promptsService.addListener(BdvPromptsBehaviours.PROMPT_CONTRAST,
 				segFillers::getEnabled, processPromptOnConvertedPixels);
 
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.PROMPT,
+		promptsService.addListener(BdvPromptsBehaviours.PROMPT,
 				segFillers::getEnabled, processPromptOnOriginalPixels);
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
-				segFillers::getEnabled, processPromptOnOriginalPixels);
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_NEARER_SLICE,
-				segFillers::getEnabled, processPromptOnOriginalPixels);
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_FURTHER_SLICE,
+		promptsService.addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
 				segFillers::getEnabled, processPromptOnOriginalPixels);
 
 		final AtomicBoolean isPlanRunning = new AtomicBoolean(false);
@@ -126,29 +125,38 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 				bdvPromptsController.getConvViewServiceFor(
 						(SourceAndConverter)bdvHandle.getViewerPanel().state().getSources().get(0) ).getConverterSetup(),
 				SeedsUtils.giveBitFlagForMildDebug());
-		final TrackingPlanner.LabelPresenceIndicator brightPixels = null; //TODO
 
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.MULTI_PROMPT,
+		promptsService.addListener(BdvPromptsBehaviours.MULTI_PROMPT,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
 					SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
 					segFillers.updateOrigImageForSource((SourceAndConverter)sac, e);
 					final List<BdvPromptsEvent> plan = SeedsPlanner.plan(e, segFillers.getRawImg(), seedsFinder);
 					System.out.println("J: " + plan.size() + " seed(s) found");
 					reviewThenRun(plan, "J: prompts at the found seeds",
-							bdvPromptsController.getBdvPromptsService(), processPromptOnOriginalPixels, isPlanRunning);
+							promptsService, processPromptOnOriginalPixels, isPlanRunning);
 				});
 
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.TRACKING_PROMPT,
+		if (BdvPromptsBehaviours.is2D(promptsService)) return;
+
+		//register 3D-only capable activities
+		promptsService.addListener(BdvPromptsBehaviours.REPEAT_PROMPT_NEARER_SLICE,
+				  segFillers::getEnabled, processPromptOnOriginalPixels);
+		promptsService.addListener(BdvPromptsBehaviours.REPEAT_PROMPT_FURTHER_SLICE,
+				  segFillers::getEnabled, processPromptOnOriginalPixels);
+
+		final TrackingPlanner.LabelPresenceIndicator brightPixels = null; //TODO
+
+		promptsService.addListener(BdvPromptsBehaviours.TRACKING_PROMPT,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
 					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
 					reviewThenRun(plan, "K: prompts following the label",
-							bdvPromptsController.getBdvPromptsService(), processPromptOnOriginalPixels, isPlanRunning);
+							promptsService, processPromptOnOriginalPixels, isPlanRunning);
 				});
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.TRACKING_PROMPT_CONTRAST,
+		promptsService.addListener(BdvPromptsBehaviours.TRACKING_PROMPT_CONTRAST,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
 					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
 					reviewThenRun(plan, "K: prompts following the label",
-							bdvPromptsController.getBdvPromptsService(), processPromptOnConvertedPixels, isPlanRunning);
+							promptsService, processPromptOnConvertedPixels, isPlanRunning);
 				});
 	}
 
