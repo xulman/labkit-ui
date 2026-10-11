@@ -5,6 +5,7 @@ import bdv.interactive.services.BdvPromptsService;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.gui.Command;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.segmentation.SAI;
@@ -294,24 +295,50 @@ public class Remote2dSegControlDlg extends JPanel {
 
 	private String buildShortcutsHtml() {
 		final BdvPromptsService service = servers.getBdvPromptsController().getBdvPromptsService();
-		final Set<String> installedActions = new HashSet<>(service.getActions()); //NB: a modifiable copy
-
-		//descriptions (and the order of the actions) as given for the BDV keymap editor
-		final CommandDescriptions descriptions = new CommandDescriptions();
-		descriptions.setKeyconfigContext("Remote SAI server dialog");
-		new BdvPromptsBehaviours.Descriptions().getCommandDescriptions(descriptions);
-		new SAI.Descriptions().getCommandDescriptions(descriptions);
+		final Set<String> remainingActions = new HashSet<>(service.getActions()); //NB: a modifiable copy
 
 		final StringBuilder html = new StringBuilder("<html><body>");
+		//one section per kind of actions, as they are described for the BDV keymap editor
+		appendSection(html, "Prompting and navigation",
+				new BdvPromptsBehaviours.Descriptions(), service, remainingActions);
+		appendSection(html, "More shortcuts",
+				new SAI.Descriptions(), service, remainingActions);
+
+		//installed but not described actions (if any), at least with their names
+		if (!remainingActions.isEmpty()) {
+			appendSectionHeader(html, "Other actions");
+			remainingActions.stream().sorted().forEach(action -> appendShortcut(html, service, action, action));
+		}
+		return html.append("</body></html>").toString();
+	}
+
+	/**
+	 * Appends a header and then all actions described by the {@code provider} (in the order given there)
+	 * that are installed in the {@code service}; nothing is appended if there is no such action.
+	 * The appended actions are removed from the {@code remainingActions}.
+	 */
+	private static void appendSection(final StringBuilder html, final String title,
+	                                  final CommandDescriptionProvider provider, final BdvPromptsService service,
+	                                  final Set<String> remainingActions) {
+		final CommandDescriptions descriptions = new CommandDescriptions();
+		descriptions.setKeyconfigContext("Remote SAI server dialog");
+		provider.getCommandDescriptions(descriptions);
+
+		final StringBuilder entries = new StringBuilder();
 		for (Map.Entry<Command, String> d : descriptions.createCommandDescriptionsMap().entrySet()) {
 			final String action = d.getKey().getName();
-			if (!installedActions.contains(action)) continue;
-			appendShortcut(html, service, action, d.getValue());
-			installedActions.remove(action);
+			if (remainingActions.remove(action)) appendShortcut(entries, service, action, d.getValue());
 		}
-		//installed but not described actions (if any), at least with their names
-		installedActions.stream().sorted().forEach(action -> appendShortcut(html, service, action, action));
-		return html.append("</body></html>").toString();
+		if (entries.length() == 0) return;
+
+		appendSectionHeader(html, title);
+		html.append(entries);
+	}
+
+	private static void appendSectionHeader(final StringBuilder html, final String title) {
+		html.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"3\"><tr><td bgcolor=\"#dde3ea\">")
+			.append("<font size=\"+1\"><b>").append(escapeHtml(title)).append("</b></font>")
+			.append("</td></tr></table><br>");
 	}
 
 	private static void appendShortcut(final StringBuilder html, final BdvPromptsService service,
