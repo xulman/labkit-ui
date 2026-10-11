@@ -185,8 +185,35 @@ public abstract class AbstractSegFill {
 	public boolean getSeedsDebugToFiji() { return this.seedsDebugToFiji; }
 
 	/**
-	 * Pushes the content from the provided mask to the labels layer, to the
-	 * currently selected label, honoring if the overwriting is allowed.
+	 * How the (instance) segmentation mask, as returned from {@link #segment(Img, Img, int[])},
+	 * is transferred into the labels layer, see {@link #updateLabelsFrom(Img, BdvPromptsEvent)}.
+	 */
+	public enum MaskTransfer {
+		BINARY_ALL("Binary: all into the current label", true, false),
+		BINARY_NO_BOUNDARY("Binary: except cells touching the box boundary", true, true),
+		INSTANCES_ALL("Instances: each cell into its own label", false, false),
+		INSTANCES_NO_BOUNDARY("Instances: except cells touching the box boundary", false, true);
+
+		MaskTransfer(final String title, final boolean binarize, final boolean excludeBoundary) {
+			this.title = title;
+			this.binarize = binarize;
+			this.excludeBoundary = excludeBoundary;
+		}
+
+		private final String title;
+		/** All non-zero mask values go into the current label, otherwise every value gets its own label. */
+		public final boolean binarize;
+		/** Mask values found on the first/last row/column of the prompt box are ignored. */
+		public final boolean excludeBoundary;
+
+		@Override
+		public String toString() { return title; }
+	}
+
+	protected volatile MaskTransfer maskTransfer = MaskTransfer.BINARY_ALL;
+	public void setMaskTransfer(final MaskTransfer newMode) { this.maskTransfer = newMode; }
+	public MaskTransfer getMaskTransfer() { return this.maskTransfer; }
+
 	 *
 	 * Notice the input mask is intentionally explicitly provided, so multiple
 	 * "updatings" can happen in parallel from multiple sources (provided mask images).
