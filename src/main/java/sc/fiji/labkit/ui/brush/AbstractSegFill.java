@@ -214,36 +214,69 @@ public abstract class AbstractSegFill {
 	public void setMaskTransfer(final MaskTransfer newMode) { this.maskTransfer = newMode; }
 	public MaskTransfer getMaskTransfer() { return this.maskTransfer; }
 
+	/**
+	 * Pushes the content from the provided mask to the labels layer, honoring if the
+	 * overwriting is allowed, and following the current {@link MaskTransfer} mode:
+	 * <ul>
+	 *   <li>binary: every non-zero mask pixel goes into the currently selected label;</li>
+	 *   <li>instances: the first discovered non-zero mask value (in the raster order) goes
+	 *       into the currently selected label, every next discovered value gets a new label;</li>
+	 *   <li>without the boundary: mask values found on the first/last row/column of the
+	 *       prompt box are not transferred at all.</li>
+	 * </ul>
+	 * Only the mask pixels inside the prompt box are considered.
 	 *
 	 * Notice the input mask is intentionally explicitly provided, so multiple
 	 * "updatings" can happen in parallel from multiple sources (provided mask images).
 	 */
 	public
 	void updateLabelsFrom(Img<UnsignedShortType> segMask, BdvPromptsEvent promptEvent) {
-		//what to write, using which accessor
-		final Label label = model.selectedLabel().get();
-		final RandomAccess<LabelingType<Label>> ra = model.labeling().get().randomAccess();
+		final MaskTransfer mode = maskTransfer; //NB: one mode for the whole update (by having a copy...)
+
+		final Labeling labeling = model.labeling().get();
+		//
+		final Label selectedLabel = model.selectedLabel().get(); //can be null!
+		final Label startWithThisLabel = selectedLabel != null ? selectedLabel : labeling.addLabel("SAI");
+		if (selectedLabel != startWithThisLabel) model.labeling().notifier().notifyListeners(); //to update the list of labels
+		//
+		final RandomAccess<LabelingType<Label>> ra = labeling.randomAccess();
 		final AffineTransform3D screenToSourceT = promptEvent
 				  .getGlobalToScreenTransform()
 				  .concatenate(model.labelTransformation())
 				  .inverse();
 		final double[] pos = new double[3];
 
-		//TODO: sweeps exactly inside the prompt, shouldn't we sweep full segMask
-		//TODO: sweeps at the resolution of the segMask (of the screen),
-		//      in contrast to the resolution of the Labkit's label mask image
-		final Cursor<UnsignedShortType> smlc = Views.interval(segMask, promptEvent.asInterval()).localizingCursor();
-		while (smlc.hasNext()) {
-			if (smlc.next().get() > 0) {
-				smlc.localize(pos);
-				//System.out.println("Found seg res at screen coord: "+pos[0]+","+pos[1]+","+pos[2]);
-				pos[2] = 0.0;
-				screenToSourceT.apply(pos, pos);
-				//System.out.println("     seg res at raw img coord: "+pos[0]+","+pos[1]+","+pos[2]);
+		final RandomAccessibleInterval<UnsignedShortType> promptView = Views.interval(segMask, promptEvent.asInterval());
+		final Set<Integer> excludedValues = mode.excludeBoundary ? collectBoundaryValues(promptView) : Collections.emptySet();
 
-				LabelingType<Label> px = ra.setPositionAndGet(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
-				if (px.isEmpty() || allowOverlappingLabels) px.add(label);
+		//mask value -> its label (used only when not binarizing)
+		final Map<Integer, Label> valueToLabel = new HashMap<>();
+		int numAddedNewLabels = 0;
+
+		final Cursor<UnsignedShortType> smlc = promptView.localizingCursor();
+		while (smlc.hasNext()) {
+			final int value = smlc.next().getInteger();
+			if (value == 0 || excludedValues.contains(value)) continue;
+
+			Label label = startWithThisLabel;
+			if (!mode.binarize) {
+				label = valueToLabel.get(value);
+				if (label == null) {
+					label = valueToLabel.isEmpty() ? startWithThisLabel
+							: addNewLabel(labeling, selectedLabel, ++numAddedNewLabels);
+					valueToLabel.put(value, label);
+				}
 			}
+
+			smlc.localize(pos);
+			pos[2] = 0.0;
+			screenToSourceT.apply(pos, pos);
+			LabelingType<Label> px = ra.setPositionAndGet(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
+			if (px.isEmpty() || allowOverlappingLabels) px.add(label);
+		}
+
+		if (numAddedNewLabels > 0) model.labeling().notifier().notifyListeners(); //to update the list of labels
+	}
 
 	/** @return the non-zero values found on the first and last rows and columns of the (2D) image */
 	static Set<Integer> collectBoundaryValues(final RandomAccessibleInterval<UnsignedShortType> img) {
