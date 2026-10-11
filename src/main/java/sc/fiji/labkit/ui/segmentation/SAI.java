@@ -11,6 +11,7 @@ import bdv.interactive.services.BdvPromptsEvent;
 import bdv.interactive.services.BdvPromptsListener;
 import bdv.interactive.services.BdvPromptsService;
 import bdv.util.BdvHandle;
+import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealLocalizable;
@@ -150,10 +151,15 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 				segFillers::getEnabled, processPromptOnOriginalPixels);
 
 		final AtomicBoolean isPlanRunning = new AtomicBoolean(false);
-		final SeedsPlanner.SeedsFinder seedsFinder = SeedsPlanner.contrastThresholdingSeeds(
-				bdvPromptsController.getConvViewServiceFor(
-						(SourceAndConverter)bdvHandle.getViewerPanel().state().getSources().get(0) ).getConverterSetup(),
-				SeedsUtils.giveBitFlagForMildDebug());
+		final ConverterSetup seedsContrast = bdvPromptsController.getConvViewServiceFor(
+				(SourceAndConverter)bdvHandle.getViewerPanel().state().getSources().get(0) ).getConverterSetup(); //TODO hard-coded source, provides wrong info to the seeder script
+		final SeedsPlanner.SeedsFinder seedsFinderWithDebug = SeedsPlanner.contrastThresholdingSeeds(
+				seedsContrast, SeedsUtils.giveBitFlagForMildDebug());
+		final SeedsPlanner.SeedsFinder seedsFinderNoDebug = SeedsPlanner.contrastThresholdingSeeds(
+				seedsContrast, SeedsUtils.giveBitFlagForNoDebug());
+		//NB: the debug level is decided per every 'J', following the dialog's checkbox
+		final SeedsPlanner.SeedsFinder seedsFinder = roiImage -> (segFillers.getSeedsDebugToFiji()
+				? seedsFinderWithDebug : seedsFinderNoDebug).findSeeds(roiImage);
 
 		promptsService.addListener(BdvPromptsBehaviours.MULTI_PROMPT,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {

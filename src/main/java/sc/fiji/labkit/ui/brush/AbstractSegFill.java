@@ -169,6 +169,11 @@ public abstract class AbstractSegFill {
 	public void setOverlapping(boolean newState) { this.allowOverlappingLabels = newState; }
 	public boolean getOverlapping() { return this.allowOverlappingLabels; }
 
+	/** Whether the seeds-finding (of the multi-prompt, 'J') shows its intermediate images in Fiji. */
+	protected volatile boolean seedsDebugToFiji = false;
+	public void setSeedsDebugToFiji(boolean newState) { this.seedsDebugToFiji = newState; }
+	public boolean getSeedsDebugToFiji() { return this.seedsDebugToFiji; }
+
 	/**
 	 * Pushes the content from the provided mask to the labels layer, to the
 	 * currently selected label, honoring if the overwriting is allowed.

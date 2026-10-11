@@ -190,6 +190,8 @@ public class Remote2dSegControlDlg extends JPanel {
 		cb_showSegSrc.addItemListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
 		cb_showSegTgt = new JCheckBox("Show outputs to segmentation in Fiji", false); // Unchecked
 		cb_showSegTgt.addItemListener( l -> servers.setSegOutputToFiji(cb_showSegTgt.isSelected()) );
+		cb_showSeedsDebug = new JCheckBox("Show seeds-finding (J) debug images in Fiji", false);
+		cb_showSeedsDebug.addItemListener( l -> servers.setSeedsDebugToFiji(cb_showSeedsDebug.isSelected()) );
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
@@ -203,12 +205,15 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.gridy = 3;
 		bottomPanel.add(cb_showSegTgt, gbc);
 
+		gbc.gridy = 4;
+		bottomPanel.add(cb_showSeedsDebug, gbc);
+
 		if (segLayer != null) {
 			// Add segmentation buttons
 			segmenterAdderButton = new JButton("Submit to segmentation");
 			segmenterAdderButton.addActionListener(l
 					-> segLayer.moveFromLabelImg(servers.model, servers.bdv));
-			gbc.gridy = 4;
+			gbc.gridy = 5;
 			gbc.gridwidth = 2;
 			bottomPanel.add(segmenterAdderButton, gbc);
 
@@ -235,6 +240,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	private JButton removeButton;
 	private JCheckBox cb_showSegSrc;
 	private JCheckBox cb_showSegTgt;
+	private JCheckBox cb_showSeedsDebug;
 	private JComboBox<String> cb_processSegTgt;
 	private final String PROCESS_EXCLUDE_BORDERS = "Exclude the boundary-touching cells";
 	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
