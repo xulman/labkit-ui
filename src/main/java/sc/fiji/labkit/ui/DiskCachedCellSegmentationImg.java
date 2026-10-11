@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.util.RandomAccessibleIntervalMipmapSource4D;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imagej.axis.CalibratedAxis;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.Point;
@@ -28,6 +29,7 @@ import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.labeling.Labeling;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 
@@ -90,8 +92,17 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		final Label selectedLabel = model.selectedLabel().get();
 		boolean foundAtLeastOne = false;
 
-		final Point p = new Point(3);
+		final Point p = new Point(4);
+		p.setPosition(0, 3);
 		final double[] pos = new double[3];
+
+		//the timepoint business
+		final int tp = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+		int tpDim = -1;
+		final List<CalibratedAxis> axes = model.labeling().get().axes(); //only a shortcut
+		for (int t = 0; t < axes.size(); ++t) {
+			if (!axes.get(t).type().isSpatial()) tpDim = t;
+		}
 
 		for (int y = 0; y < screenH; y++) {
 			for (int x = 0; x < screenW; x++) {
@@ -100,6 +111,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 				p.setPosition(Math.round(pos[0]), 0);
 				p.setPosition(Math.round(pos[1]), 1);
 				p.setPosition(Math.round(pos[2]), 2);
+				if (tpDim > -1) p.setPosition(tp, tpDim);
 				if (ra.setPositionAndGet(p).contains(selectedLabel)) {
 					System.out.println("Discovered label '"+selectedLabel.name()+"' at ["+x+","+y+"], moving to segmentation layer...");
 					moveFromLabelImg(model.labeling().get(), selectedLabel, p);
