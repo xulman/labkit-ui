@@ -275,6 +275,7 @@ public class Remote2dSegControlDlg extends JPanel {
 		final CommandDescriptions descriptions = new CommandDescriptions();
 		descriptions.setKeyconfigContext("Remote SAI server dialog");
 		new BdvPromptsBehaviours.Descriptions().getCommandDescriptions(descriptions);
+		new SAI.Descriptions().getCommandDescriptions(descriptions);
 
 		final StringBuilder html = new StringBuilder("<html><body>");
 		for (Map.Entry<Command, String> d : descriptions.createCommandDescriptionsMap().entrySet()) {

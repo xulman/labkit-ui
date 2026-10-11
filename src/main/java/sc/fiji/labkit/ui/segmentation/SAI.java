@@ -1,5 +1,6 @@
 package sc.fiji.labkit.ui.segmentation;
 
+import bdv.KeyConfigScopes;
 import bdv.interactive.behaviours.BdvPromptsBehaviours;
 import bdv.interactive.plans.PlanReviewer;
 import bdv.interactive.plans.PlanUtils;
@@ -18,6 +19,10 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.LabelingType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import org.scijava.plugin.Plugin;
+import org.scijava.ui.behaviour.ClickBehaviour;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import sc.fiji.labkit.ui.brush.BdvPromptsController;
@@ -63,6 +68,7 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 		this.segLayer = segLayer;
 
 		registerListeners();
+		registerSaiKeys();
 	}
 
 	private final BdvPromptsController bdvPromptsController;
@@ -78,27 +84,44 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 	public DiskCachedCellSegmentationImg<ST> getSegLayer() { return segLayer; }
 
 
-	private void registerListeners() {
-		/*
-		OBSOLETE
-		bdvPromptsController.getBdvPromptsService().addListener(BdvPromptsBehaviours.REPEAT_PROMPT_HERE,
-				segFillers::getEnabled,
-				e -> {
-					System.out.println("Shuffling selected label into localSegImg");
-					final double[] pos = new double[] {e.getMinX(), e.getMinY(), 0};
-					final AffineTransform3D screenToSourceT = e
-							.getGlobalToScreenTransform()
-							.concatenate(model.labelTransformation())
-							.inverse();
-					screenToSourceT.apply(pos,pos);
-					final Point p = new Point(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
-					segLayer.moveFromLabelImg(model.labeling().get(), model.selectedLabel().get(), p);
-					bdvHandle.getViewerPanel().requestRepaint();
-		});
-		BECAUSE THIS DOES IT BETTER:
-		segLayer.moveFromLabelImg(model, bdvHandle);
-		*/
+	// ======================== SAI's own (non-prompting) actions ========================
+	/** Name, default key(s) and description of an SAI action; see {@link #registerSaiKeys()}. */
+	public static final String LABELS_TO_SEGMENTATION = "sai: submit labels to segmentation";
+	public static final String[] LABELS_TO_SEGMENTATION_KEYS = new String[] { "A" };
+	public static final String LABELS_TO_SEGMENTATION_DESCRIPTION =
+			"Submit the labels found in the current view to the SAI segmentation layer "
+			+ "(the same as the \"Submit to segmentation\" button in the SAI controls window).";
 
+	/**
+	 * Installs SAI's own actions into the same {@link BdvPromptsService} that hosts the prompting
+	 * actions, so they all share the BDV-keymap handling (re-mappable, removed together on closing)
+	 * and they all show up in the SAI controls window's list of shortcuts.
+	 */
+	private void registerSaiKeys() {
+		//NB: addViewAction() is the service's public entry for plain (non-prompting) keymap-driven actions
+		bdvPromptsController.getBdvPromptsService().addViewAction((ClickBehaviour) (x, y) -> {
+			segLayer.moveFromLabelImg(model, bdvHandle);
+		}, LABELS_TO_SEGMENTATION, LABELS_TO_SEGMENTATION_KEYS);
+	}
+
+	/**
+	 * Descriptions of SAI's own actions, for the SAI controls window and for the BDV keymap editor
+	 * (where available), just like {@link BdvPromptsBehaviours.Descriptions} for the prompting ones.
+	 */
+	@Plugin(type = CommandDescriptionProvider.class)
+	public static class Descriptions extends CommandDescriptionProvider {
+		public Descriptions() {
+			super(KeyConfigScopes.BIGDATAVIEWER, BdvPromptsService.KEYCONFIG_CONTEXT);
+		}
+
+		@Override
+		public void getCommandDescriptions(final CommandDescriptions descriptions) {
+			descriptions.add(LABELS_TO_SEGMENTATION, LABELS_TO_SEGMENTATION_KEYS, LABELS_TO_SEGMENTATION_DESCRIPTION);
+		}
+	}
+
+	// ======================== SAI's prompting actions ========================
+	private void registerListeners() {
 		final BdvPromptsListener processPromptOnOriginalPixels = e -> {
 			SourceAndConverter<?> sac = bdvHandle.getViewerPanel().state().getCurrentSource();
 			segFillers.updateOrigImageForSource((SourceAndConverter)sac, e);
@@ -166,6 +189,7 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 				});
 	}
 
+	// ======================== "connectors" to Labkit used in some prompting actions ========================
 	static class LabelPresenceIndicator implements TrackingPlanner.LabelPresenceIndicator {
 		public LabelPresenceIndicator(final LabelingModel model) {
 			this.model = model;
@@ -197,6 +221,7 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 		}
 	}
 
+	// ======================== batches of prompts ========================
 	/**
 	 * The plan is first shown in the {@link PlanReviewer}, and executed only if the user chooses "Proceed".
 	 * NB: the dialog is opened only after the current event (the end of the user's drag) has been
