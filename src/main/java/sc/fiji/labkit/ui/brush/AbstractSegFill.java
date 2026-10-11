@@ -51,6 +51,14 @@ public abstract class AbstractSegFill {
 	}
 
 	/**
+	 * @return BdvPromptsController using which it fetches the here-cached view images,
+	 *         and using which it especially monitors the caches validity.
+	 */
+	public BdvPromptsController getBdvPromptsController() {
+		return ctrl;
+	}
+
+	/**
 	 * Implementing filler is expected to read Float-type not-intensity-normalized
 	 * raw-like image to carry instance segmentation on it, result of which to
 	 * store into the provided Short-typed output image.

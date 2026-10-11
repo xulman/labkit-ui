@@ -11,8 +11,6 @@ import bdv.interactive.services.BdvPromptsListener;
 import bdv.interactive.services.BdvPromptsService;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.Point;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
@@ -48,7 +46,9 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 
 		if (!model.equals(segFillers.getLabelingModel()))
 			throw new IllegalStateException("Registering 2dSegFiller for different labels layer than this SAI is servicing.");
-		//TODO check also for this.bdvPromptsController
+		if (!bdvPromptsController.equals(segFillers.getBdvPromptsController()))
+			throw new IllegalStateException("Registering 2dSegFiller for different prompts controller than this SAI is servicing.");
+		//TODO check the other params, they are using(sharing) many things and these must be the same!
 
 		this.bdvPromptsController = bdvPromptsController;
 		this.segFillers = segFillers;
