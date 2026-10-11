@@ -11,11 +11,17 @@ import bdv.interactive.services.BdvPromptsListener;
 import bdv.interactive.services.BdvPromptsService;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.RandomAccess;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.labeling.LabelingType;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.brush.AbstractSegFill;
 import sc.fiji.labkit.ui.brush.BdvPromptsController;
+import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
 import javax.swing.*;
@@ -144,20 +150,51 @@ public class SAI <ST extends RealType<ST> & NativeType<ST>> {
 		promptsService.addListener(BdvPromptsBehaviours.REPEAT_PROMPT_FURTHER_SLICE,
 				  segFillers::getEnabled, processPromptOnOriginalPixels);
 
-		final TrackingPlanner.LabelPresenceIndicator brightPixels = null; //TODO
+		final TrackingPlanner.LabelPresenceIndicator selectedLabelIndicator = new LabelPresenceIndicator(model);
 
 		promptsService.addListener(BdvPromptsBehaviours.TRACKING_PROMPT,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
-					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
+					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, selectedLabelIndicator, 1.0, 1000);
 					reviewThenRun(plan, "K: prompts following the label",
 							promptsService, processPromptOnOriginalPixels, isPlanRunning);
 				});
 		promptsService.addListener(BdvPromptsBehaviours.TRACKING_PROMPT_CONTRAST,
 				() -> segFillers.getEnabled() && !isPlanRunning.get(), e -> {
-					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, brightPixels, 1.0, 1000);
+					final List<BdvPromptsEvent> plan = TrackingPlanner.plan(e, selectedLabelIndicator, 1.0, 1000);
 					reviewThenRun(plan, "K: prompts following the label",
 							promptsService, processPromptOnConvertedPixels, isPlanRunning);
 				});
+	}
+
+	static class LabelPresenceIndicator implements TrackingPlanner.LabelPresenceIndicator {
+		public LabelPresenceIndicator(final LabelingModel model) {
+			this.model = model;
+			this.modelGlobalToSourceT = model.labelTransformation().inverse();
+			this.modelRA = model.labeling().get().randomAccess();
+		}
+
+		final LabelingModel model;
+		final AffineTransform3D modelGlobalToSourceT;
+		final RandomAccess<LabelingType<Label>> modelRA;
+		Label seekedLabel;
+		final RealPoint ptr =  new RealPoint(3); //aux helper
+
+		@Override
+		public void prepareForQueryingSession() {
+			seekedLabel = model.selectedLabel().get();
+		}
+
+		@Override
+		public boolean isPresent(RealLocalizable globalPosition) {
+			if (seekedLabel == null) return false;
+
+			modelGlobalToSourceT.apply(globalPosition, ptr);
+			return modelRA.setPositionAndGet(
+					Math.round(ptr.getDoublePosition(0)), //TODO what if outside the label image??
+					Math.round(ptr.getDoublePosition(1)),
+					Math.round(ptr.getDoublePosition(2))
+				).contains(seekedLabel);
+		}
 	}
 
 	/**
