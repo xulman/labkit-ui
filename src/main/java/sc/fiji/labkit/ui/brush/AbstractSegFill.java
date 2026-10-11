@@ -18,6 +18,11 @@ import net.imglib2.view.Views;
 import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -207,6 +212,26 @@ public abstract class AbstractSegFill {
 				LabelingType<Label> px = ra.setPositionAndGet(Math.round(pos[0]), Math.round(pos[1]), Math.round(pos[2]));
 				if (px.isEmpty() || allowOverlappingLabels) px.add(label);
 			}
+
+	/** @return the non-zero values found on the first and last rows and columns of the (2D) image */
+	static Set<Integer> collectBoundaryValues(final RandomAccessibleInterval<UnsignedShortType> img) {
+		//TODO isn't Views into 1D faster for sweeping?
+		//TODO could be generics, no? maybe?
+		final Set<Integer> values = new HashSet<>();
+		final RandomAccess<UnsignedShortType> ra = img.randomAccess();
+		final long minX = img.min(0), maxX = img.max(0);
+		final long minY = img.min(1), maxY = img.max(1);
+		for (long x = minX; x <= maxX; ++x) {
+			values.add(ra.setPositionAndGet(x, minY).getInteger());
+			values.add(ra.setPositionAndGet(x, maxY).getInteger());
+		}
+		for (long y = minY; y <= maxY; ++y) {
+			values.add(ra.setPositionAndGet(minX, y).getInteger());
+			values.add(ra.setPositionAndGet(maxX, y).getInteger());
+		}
+		values.remove(0);
+		return values;
+	}
 		}
 	}
 }
