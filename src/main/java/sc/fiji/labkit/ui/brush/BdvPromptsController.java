@@ -64,7 +64,8 @@ public class BdvPromptsController implements AutoCloseable {
 
 	@Override
 	public void close() throws Exception {
-		bdvPromptsService.getActions().forEach(bdvPromptsService::removeAction);
+		//NB: removes all actions (prompting, navigation, SAI's own), listeners, and the box overlay
+		bdvPromptsService.dispose();
 		originalViewsService.close();
 		convertedViewsServices.clear();
 	}

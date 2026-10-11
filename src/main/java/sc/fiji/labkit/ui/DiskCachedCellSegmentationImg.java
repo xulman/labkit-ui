@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.util.RandomAccessibleIntervalMipmapSource4D;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imagej.axis.CalibratedAxis;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.Point;
@@ -28,6 +29,7 @@ import sc.fiji.labkit.ui.labeling.Label;
 import sc.fiji.labkit.ui.labeling.Labeling;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 
@@ -67,8 +69,8 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		return segImg;
 	}
 
-	public SourceAndConverter<T> getSAC(final SourceAndConverter<?> mimicThisSAC) {
-		if (segSAC == null) segSAC = createSAC(mimicThisSAC);
+	public SourceAndConverter<T> getSAC(final SourceAndConverter<?> mimicThisSAC, final boolean isXYT) {
+		if (segSAC == null) segSAC = createSAC(mimicThisSAC, isXYT);
 		return segSAC;
 	}
 
@@ -90,8 +92,17 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		final Label selectedLabel = model.selectedLabel().get();
 		boolean foundAtLeastOne = false;
 
-		final Point p = new Point(3);
+		final Point p = new Point(4);
+		p.setPosition(0, 3);
 		final double[] pos = new double[3];
+
+		//the timepoint business
+		final int tp = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+		int tpDim = -1;
+		final List<CalibratedAxis> axes = model.labeling().get().axes(); //only a shortcut
+		for (int t = 0; t < axes.size(); ++t) {
+			if (!axes.get(t).type().isSpatial()) tpDim = t;
+		}
 
 		for (int y = 0; y < screenH; y++) {
 			for (int x = 0; x < screenW; x++) {
@@ -100,6 +111,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 				p.setPosition(Math.round(pos[0]), 0);
 				p.setPosition(Math.round(pos[1]), 1);
 				p.setPosition(Math.round(pos[2]), 2);
+				if (tpDim > -1) p.setPosition(tp, tpDim);
 				if (ra.setPositionAndGet(p).contains(selectedLabel)) {
 					System.out.println("Discovered label '"+selectedLabel.name()+"' at ["+x+","+y+"], moving to segmentation layer...");
 					moveFromLabelImg(model.labeling().get(), selectedLabel, p);
@@ -117,7 +129,7 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		final BiPredicate<LabelingType<Label>, T > filter
 				= (t, u ) -> t.contains(label) && u.getRealDouble() != maskValue;
 		type.setReal(maskValue);
-		FloodFill.fill(labeling, segImg, seedPos, type, shape, filter);
+		FloodFill.fill(labeling, Views.extendValue(segImg, maskValue), seedPos, type, shape, filter);
 	}
 
 	public void moveFromLabelImg(final Labeling labeling, final Label label, final Localizable seedPos) {
@@ -131,15 +143,16 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 			return false;
 		};
 		type.setReal(maskValue);
-		FloodFill.fill(labeling, segImg, seedPos, type, shape, filter);
+		FloodFill.fill(labeling, Views.extendValue(segImg, maskValue), seedPos, type, shape, filter);
 	}
 
 
-	private SourceAndConverter<T> createSAC(final SourceAndConverter<?> labellingSAC) {
+	private SourceAndConverter<T> createSAC(final SourceAndConverter<?> labellingSAC, final boolean isXYT) {
 		final RandomAccessibleInterval<T>[] mipmapImgs = new RandomAccessibleInterval[1];
 		RandomAccessibleInterval<T> segImgAs4D = segImg;
 		if (segImgAs4D.numDimensions() == 2) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
 		if (segImgAs4D.numDimensions() == 3) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
+		if (isXYT) segImgAs4D = Views.moveAxis(segImgAs4D, 2, 3);
 		mipmapImgs[0] = segImgAs4D;
 		final AffineTransform3D[] mipmapTransforms = new AffineTransform3D[] {new AffineTransform3D()};
 		labellingSAC.getSpimSource().getSourceTransform(0, 0, mipmapTransforms[0]);
@@ -154,12 +167,12 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	public final Converter< T, ARGBType > converter = new RealARGBColorConverter<T>() {
 		public final ARGBType black = new ARGBType(0x000000);
 		public final ARGBType[] colors = new ARGBType[] {
-				  new ARGBType(0xFF0000),
-				  new ARGBType(0x00FF00),
-				  new ARGBType(0x0000FF),
-				  new ARGBType(0xFFFF00),
-				  new ARGBType(0xFF00FF),
-				  new ARGBType(0x00FFFF),
+				  new ARGBType(0xBB0000), //red
+				  new ARGBType(0x00BB00), //green
+				  new ARGBType(0x0000BB), //blue
+				  new ARGBType(0xBBBB00), //yellow
+				  new ARGBType(0xBB00BB), //magenta
+				  new ARGBType(0x00BBBB), //cyan
 				  new ARGBType(0xBBBBBB) };
 
 		@Override

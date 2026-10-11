@@ -81,6 +81,9 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	private JSlider zSlider;
 
+	/** Created in initLabelsPanel(), closed in close(); null if never created. */
+	private BdvPromptsController bdvPromptsController = null;
+
 	public BasicLabelingComponent(final JFrame dialogBoxOwner,
 		final ImageLabelingModel model)
 	{
@@ -150,7 +153,7 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		//could provide some identification (to which BDV it belongs)
 		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
 
-		final BdvPromptsController bdvPromptsController = new BdvPromptsController(bdvHandle);
+		bdvPromptsController = new BdvPromptsController(bdvHandle);
 		//
 		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvPromptsController, model);
 		final String authKey = "O6MmRHBdfRA24uTYvbsdm_Yi6ZBEj_tYK-oO6EM8qPY";
@@ -160,7 +163,9 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
 				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
 		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
-		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC = localSegImg.getSAC(sources.get(sources.size() - 1));
+		boolean isXYT = model.labeling().get().numDimensions() == 3 && model.isTimeSeries();
+		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC
+				= localSegImg.getSAC(sources.get(sources.size() - 1), isXYT);
 		bdvHandle.getViewerPanel().state().addSource(localSegImgAsSAC);
 		bdvHandle.getViewerPanel().state().setSourceActive(localSegImgAsSAC, true);
 		//
@@ -184,6 +189,14 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	@Override
 	public void close() {
+		if (bdvPromptsController != null) {
+			try {
+				bdvPromptsController.close();
+			} catch (Exception e) {
+				System.out.println("ERROR: closing BdvPromptsController: " + e.getMessage());
+			}
+			bdvPromptsController = null;
+		}
 		bdvHandle.close();
 	}
 
