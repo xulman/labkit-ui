@@ -183,8 +183,10 @@ public class Remote2dSegControlDlg extends JPanel {
 		}
 
 		// Options for boundary-cutted cells
-		cb_processSegTgt = new JComboBox<>(new String[] {
-				  PROCESS_EXCLUDE_BORDERS, PROCESS_AS_IS, PROCESS_INCLUDE_BORDERS });
+		cb_processSegTgt = new JComboBox<>(AbstractSegFill.MaskTransfer.values());
+		cb_processSegTgt.setSelectedItem(servers.getMaskTransfer());
+		cb_processSegTgt.addActionListener( l ->
+				servers.setMaskTransfer((AbstractSegFill.MaskTransfer)cb_processSegTgt.getSelectedItem()) );
 		// Checkboxes
 		cb_showSegSrc = new JCheckBox("Show inputs to segmentation in Fiji", false);  // Checked
 		cb_showSegSrc.addItemListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
@@ -241,10 +243,7 @@ public class Remote2dSegControlDlg extends JPanel {
 	private JCheckBox cb_showSegSrc;
 	private JCheckBox cb_showSegTgt;
 	private JCheckBox cb_showSeedsDebug;
-	private JComboBox<String> cb_processSegTgt;
-	private final String PROCESS_EXCLUDE_BORDERS = "Exclude the boundary-touching cells";
-	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
-	private final String PROCESS_INCLUDE_BORDERS = "Include the boundary-touching cells";
+	private JComboBox<AbstractSegFill.MaskTransfer> cb_processSegTgt;
 	private JButton segmenterAdderButton = null;
 	private JButton segmenterShowerButton = null;
 
