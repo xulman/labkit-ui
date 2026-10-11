@@ -69,8 +69,8 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 		return segImg;
 	}
 
-	public SourceAndConverter<T> getSAC(final SourceAndConverter<?> mimicThisSAC) {
-		if (segSAC == null) segSAC = createSAC(mimicThisSAC);
+	public SourceAndConverter<T> getSAC(final SourceAndConverter<?> mimicThisSAC, final boolean isXYT) {
+		if (segSAC == null) segSAC = createSAC(mimicThisSAC, isXYT);
 		return segSAC;
 	}
 
@@ -147,11 +147,12 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	}
 
 
-	private SourceAndConverter<T> createSAC(final SourceAndConverter<?> labellingSAC) {
+	private SourceAndConverter<T> createSAC(final SourceAndConverter<?> labellingSAC, final boolean isXYT) {
 		final RandomAccessibleInterval<T>[] mipmapImgs = new RandomAccessibleInterval[1];
 		RandomAccessibleInterval<T> segImgAs4D = segImg;
 		if (segImgAs4D.numDimensions() == 2) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
 		if (segImgAs4D.numDimensions() == 3) segImgAs4D = Views.addDimension(segImgAs4D, 0, 0);
+		if (isXYT) segImgAs4D = Views.moveAxis(segImgAs4D, 2, 3);
 		mipmapImgs[0] = segImgAs4D;
 		final AffineTransform3D[] mipmapTransforms = new AffineTransform3D[] {new AffineTransform3D()};
 		labellingSAC.getSpimSource().getSourceTransform(0, 0, mipmapTransforms[0]);

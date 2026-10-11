@@ -160,7 +160,9 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
 				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
 		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
-		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC = localSegImg.getSAC(sources.get(sources.size() - 1));
+		boolean isXYT = model.labeling().get().numDimensions() == 3 && model.isTimeSeries();
+		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC
+				= localSegImg.getSAC(sources.get(sources.size() - 1), isXYT);
 		bdvHandle.getViewerPanel().state().addSource(localSegImgAsSAC);
 		bdvHandle.getViewerPanel().state().setSourceActive(localSegImgAsSAC, true);
 		//
