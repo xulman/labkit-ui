@@ -7,6 +7,7 @@ import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.gui.Command;
 import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,22 +21,46 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Remote2dSegControlDlg extends JPanel {
-	final JFrame frame = new JFrame("Remote 2D Segmenters Controller");
-	public void createMainFrame() {
-		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+	public static final String WINDOW_TITLE = "Remote 2D Segmenters Controller";
+	private JDialog frame = null;
+
+	/**
+	 * Creates the (non-modal) window around this panel. The window is <i>owned</i> by the given
+	 * window (typically Labkit's main window), which means that it stays above its owner, gets
+	 * minimized with it, and is disposed together with it (so it doesn't outlive Labkit).
+	 * Does nothing if the window exists already.
+	 *
+	 * @param owner can be null, in which case the window is free-standing
+	 */
+	public void createMainFrame(final Window owner) {
+		if (frame != null) return;
+		frame = new JDialog(owner, WINDOW_TITLE, Dialog.ModalityType.MODELESS);
+		frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		final JPanel mainAndShortcuts = new JPanel(new BorderLayout());
 		mainAndShortcuts.add(this, BorderLayout.CENTER);
 		mainAndShortcuts.add(createShortcutsPanel(), BorderLayout.EAST);
 		frame.add(mainAndShortcuts);
 		frame.setSize(420, 400);
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(owner);
 	}
-	public void showMainFrame() {
+
+	/**
+	 * Shows the window; creates it first if needed, owned by the window that contains
+	 * the {@code invoker} (e.g. the button that opens this window).
+	 */
+	public void showMainFrame(final Component invoker) {
+		if (frame == null) createMainFrame(invoker == null ? null : SwingUtilities.getWindowAncestor(invoker));
 		if (shortcutsScrollPane.isVisible()) refreshShortcuts();
 		frame.setVisible(true);
+		frame.toFront();
 	}
 	public void hideMainFrame() {
-		frame.setVisible(false);
+		if (frame != null) frame.setVisible(false);
+	}
+	/** Disposes the window, e.g. when it is not owned by Labkit's window; can be re-created later. */
+	public void closeMainFrame() {
+		if (frame != null) frame.dispose();
+		frame = null;
 	}
 
 	public Remote2dSegControlDlg(final Remote2dSegFillers servers, final DiskCachedCellSegmentationImg<?> segLayer) {
