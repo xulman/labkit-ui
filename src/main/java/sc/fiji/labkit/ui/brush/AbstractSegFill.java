@@ -8,20 +8,25 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.LabelingType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import sc.fiji.labkit.ui.labeling.Label;
+import sc.fiji.labkit.ui.labeling.Labeling;
 import sc.fiji.labkit.ui.models.LabelingModel;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -232,6 +237,52 @@ public abstract class AbstractSegFill {
 		values.remove(0);
 		return values;
 	}
+
+	/** @return a name derived from the given label's name, not yet used in the labeling */
+	static Label addNewLabel(final Labeling labeling, final Label baseLabel, final int index) {
+		final String base = baseLabel != null ? baseLabel.name()+" #"+index : "SAI #"+index;
+		Label newL = labeling.addLabel(base);
+		if (baseLabel != null) newL.setColor(new ARGBType( ColorVariants.variant(baseLabel.color().get(), index) ));
+		return newL;
+	}
+
+	public static final class ColorVariants {
+		private ColorVariants() {}
+
+		/** Deltas of {hue, saturation, value}; hue in turns (0.02 = ~7 degrees), S and V in [0,1]. */
+		private static final float[][] DELTAS = {
+			{ 0.00f, -0.25f, +0.00f },
+			{ 0.00f, +0.00f, -0.25f },
+			{+0.02f, -0.15f, +0.15f },
+			{-0.02f, +0.15f, -0.15f },
+			{ 0.00f, -0.35f, -0.20f },
+			{+0.03f, +0.00f, -0.35f } };
+
+		/** @return the i-th variant of the (A)RGB color (round-robin over {@link #DELTAS}); alpha is kept */
+		public static int variant(final int argb, final int i) {
+			final float[] d = DELTAS[Math.floorMod(i, DELTAS.length)];
+			return modify(argb, d[0], d[1], d[2]);
+		}
+
+		/** @return a random variant: hue by up to +-maxDH, saturation and value by up to +-maxDSV */
+		public static int randomVariant(final int argb, final Random rnd, final float maxDH, final float maxDSV) {
+			return modify(argb, (2*rnd.nextFloat()-1) * maxDH,
+					(2*rnd.nextFloat()-1) * maxDSV, (2*rnd.nextFloat()-1) * maxDSV);
+		}
+
+		/** RGB -> HSV, adds the deltas, -> RGB. Hue wraps around; S and V that would leave [0,1] get the delta mirrored instead;
+		 *  greys (almost no saturation) stay greys, only their value changes. */
+		public static int modify(final int argb, final float dH, final float dS, final float dV) {
+			final float[] hsv = Color.RGBtoHSB((argb >> 16) & 0xff, (argb >> 8) & 0xff, argb & 0xff, null);
+			final float h = hsv[0] + dH;               //NB: HSBtoRGB uses only the fractional part, wraps itself
+			final float s = hsv[1] < 0.05f ? hsv[1] : shift(hsv[1], dS); //NB: greys have no hue, keep them grey
+			final float v = shift(hsv[2], dV);
+			return (argb & 0xff000000) | (Color.HSBtoRGB(h, s, v) & 0x00ffffff);
+		}
+
+		private static float shift(final float x, final float d) {
+			final float y = x + d;
+			return (y < 0f || y > 1f) ? Math.max(0f, Math.min(1f, x - d)) : y;
 		}
 	}
 }
