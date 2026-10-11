@@ -122,14 +122,15 @@ public class LabelToolsPanel extends JPanel {
 			//
 			final Remote2dSegControlDlg remoteSegGui   //casting guaranteed by construction in the caller...
 					= new Remote2dSegControlDlg((Remote2dSegFillers)sai.getSegFillers(), sai.getSegLayer());
-			remoteSegGui.createMainFrame();
+			//NB: the window itself is created on the first opening, with Labkit's window as its owner
+			//    (which is first known then), so that it closes together with Labkit
 			//
 			final long[] prevClicked = new long[] {0}; //intentionally impossible time
 			segButton.addActionListener( (l) -> {
 				if ((l.getModifiers() & 0x10) == 0) return; // ignore if not a left-button click
 				long nowClicked = System.currentTimeMillis();
 				if ((nowClicked - prevClicked[0]) < 300) {
-					remoteSegGui.showMainFrame();
+					remoteSegGui.showMainFrame(segButton);
 				}
 				prevClicked[0] = nowClicked;
 			} );

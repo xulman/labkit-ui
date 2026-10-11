@@ -1,6 +1,12 @@
 package sc.fiji.labkit.ui.brush;
 
+import bdv.interactive.behaviours.BdvPromptsBehaviours;
+import bdv.interactive.services.BdvPromptsService;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import org.scijava.ui.behaviour.InputTrigger;
+import org.scijava.ui.behaviour.io.gui.Command;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptionProvider;
+import org.scijava.ui.behaviour.io.gui.CommandDescriptions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
 import sc.fiji.labkit.ui.segmentation.SAI;
 
@@ -9,21 +15,53 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Remote2dSegControlDlg extends JPanel {
-	final JFrame frame = new JFrame("Remote 2D Segmenters Controller");
-	public void createMainFrame() {
-		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		frame.add(this);
+	public static final String WINDOW_TITLE = "Remote 2D Segmenters Controller";
+	private JDialog frame = null;
+
+	/**
+	 * Creates the (non-modal) window around this panel. The window is <i>owned</i> by the given
+	 * window (typically Labkit's main window), which means that it stays above its owner, gets
+	 * minimized with it, and is disposed together with it (so it doesn't outlive Labkit).
+	 * Does nothing if the window exists already.
+	 *
+	 * @param owner can be null, in which case the window is free-standing
+	 */
+	public void createMainFrame(final Window owner) {
+		if (frame != null) return;
+		frame = new JDialog(owner, WINDOW_TITLE, Dialog.ModalityType.MODELESS);
+		frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		final JPanel mainAndShortcuts = new JPanel(new BorderLayout());
+		mainAndShortcuts.add(this, BorderLayout.CENTER);
+		mainAndShortcuts.add(createShortcutsPanel(), BorderLayout.EAST);
+		frame.add(mainAndShortcuts);
 		frame.setSize(420, 400);
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(owner);
 	}
-	public void showMainFrame() {
+
+	/**
+	 * Shows the window; creates it first if needed, owned by the window that contains
+	 * the {@code invoker} (e.g. the button that opens this window).
+	 */
+	public void showMainFrame(final Component invoker) {
+		if (frame == null) createMainFrame(invoker == null ? null : SwingUtilities.getWindowAncestor(invoker));
+		if (shortcutsScrollPane.isVisible()) refreshShortcuts();
 		frame.setVisible(true);
+		frame.toFront();
 	}
 	public void hideMainFrame() {
-		frame.setVisible(false);
+		if (frame != null) frame.setVisible(false);
+	}
+	/** Disposes the window, e.g. when it is not owned by Labkit's window; can be re-created later. */
+	public void closeMainFrame() {
+		if (frame != null) frame.dispose();
+		frame = null;
 	}
 
 	public Remote2dSegControlDlg(final Remote2dSegFillers servers, final DiskCachedCellSegmentationImg<?> segLayer) {
@@ -149,9 +187,11 @@ public class Remote2dSegControlDlg extends JPanel {
 				  PROCESS_EXCLUDE_BORDERS, PROCESS_AS_IS, PROCESS_INCLUDE_BORDERS });
 		// Checkboxes
 		cb_showSegSrc = new JCheckBox("Show inputs to segmentation in Fiji", false);  // Checked
-		cb_showSegSrc.addChangeListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
+		cb_showSegSrc.addItemListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
 		cb_showSegTgt = new JCheckBox("Show outputs to segmentation in Fiji", false); // Unchecked
-		cb_showSegTgt.addChangeListener( l -> servers.setSegOutputToFiji(cb_showSegTgt.isSelected()) );
+		cb_showSegTgt.addItemListener( l -> servers.setSegOutputToFiji(cb_showSegTgt.isSelected()) );
+		cb_showSeedsDebug = new JCheckBox("Show seeds-finding (J) debug images in Fiji", false);
+		cb_showSeedsDebug.addItemListener( l -> servers.setSeedsDebugToFiji(cb_showSeedsDebug.isSelected()) );
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
@@ -165,12 +205,15 @@ public class Remote2dSegControlDlg extends JPanel {
 		gbc.gridy = 3;
 		bottomPanel.add(cb_showSegTgt, gbc);
 
+		gbc.gridy = 4;
+		bottomPanel.add(cb_showSeedsDebug, gbc);
+
 		if (segLayer != null) {
 			// Add segmentation buttons
 			segmenterAdderButton = new JButton("Submit to segmentation");
 			segmenterAdderButton.addActionListener(l
 					-> segLayer.moveFromLabelImg(servers.model, servers.bdv));
-			gbc.gridy = 4;
+			gbc.gridy = 5;
 			gbc.gridwidth = 2;
 			bottomPanel.add(segmenterAdderButton, gbc);
 
@@ -197,12 +240,126 @@ public class Remote2dSegControlDlg extends JPanel {
 	private JButton removeButton;
 	private JCheckBox cb_showSegSrc;
 	private JCheckBox cb_showSegTgt;
+	private JCheckBox cb_showSeedsDebug;
 	private JComboBox<String> cb_processSegTgt;
 	private final String PROCESS_EXCLUDE_BORDERS = "Exclude the boundary-touching cells";
 	private final String PROCESS_AS_IS = "Keep as-is the boundary-touching cells";
 	private final String PROCESS_INCLUDE_BORDERS = "Include the boundary-touching cells";
 	private JButton segmenterAdderButton = null;
 	private JButton segmenterShowerButton = null;
+
+	// ======================== the collapsible panel with shortcuts ========================
+	private static final int SHORTCUTS_PANEL_WIDTH = 300;
+	private static final String SHORTCUTS_SHOW = "\u00BB"; // >>
+	private static final String SHORTCUTS_HIDE = "\u00AB"; // <<
+	private JScrollPane shortcutsScrollPane;
+	private JEditorPane shortcutsText;
+
+	/**
+	 * A slim button on the right edge of the dialog, which unfolds (and folds back)
+	 * a panel with the currently installed SAI actions: their current shortcuts
+	 * (as the user may have re-mapped them in the BDV keymap) and descriptions.
+	 */
+	private JPanel createShortcutsPanel() {
+		shortcutsText = new JEditorPane("text/html", "");
+		shortcutsText.setEditable(false);
+		shortcutsText.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE); //use the GUI font
+		shortcutsText.setFont(UIManager.getFont("Label.font").deriveFont(Font.PLAIN)); //NB: some L&Fs have bold labels
+		shortcutsText.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+		shortcutsScrollPane = new JScrollPane(shortcutsText);
+		shortcutsScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		shortcutsScrollPane.setPreferredSize(new Dimension(SHORTCUTS_PANEL_WIDTH, 0));
+		shortcutsScrollPane.setVisible(false);
+
+		final JButton toggle = new JButton(SHORTCUTS_SHOW);
+		toggle.setToolTipText("Show the keyboard shortcuts of SAI");
+		toggle.setMargin(new Insets(2, 2, 2, 2));
+		toggle.setFocusable(false);
+		toggle.addActionListener(l -> {
+			final boolean show = !shortcutsScrollPane.isVisible();
+			if (show) refreshShortcuts();
+			shortcutsScrollPane.setVisible(show);
+			toggle.setText(show ? SHORTCUTS_HIDE : SHORTCUTS_SHOW);
+			toggle.setToolTipText(show ? "Hide the keyboard shortcuts" : "Show the keyboard shortcuts of SAI");
+			//grow (or shrink) the window to the right, keep the left part as it is
+			frame.setSize(frame.getWidth() + (show ? SHORTCUTS_PANEL_WIDTH : -SHORTCUTS_PANEL_WIDTH), frame.getHeight());
+			frame.revalidate();
+		});
+
+		final JPanel panel = new JPanel(new BorderLayout());
+		panel.add(toggle, BorderLayout.WEST); //NB: WEST stretches the button over the full height
+		panel.add(shortcutsScrollPane, BorderLayout.CENTER);
+		return panel;
+	}
+
+	/** Re-reads the installed actions and their current triggers, re-renders the panel. */
+	public void refreshShortcuts() {
+		shortcutsText.setText(buildShortcutsHtml());
+		shortcutsText.setCaretPosition(0); //scroll to the top
+	}
+
+	private String buildShortcutsHtml() {
+		final BdvPromptsService service = servers.getBdvPromptsController().getBdvPromptsService();
+		final Set<String> remainingActions = new HashSet<>(service.getActions()); //NB: a modifiable copy
+
+		final StringBuilder html = new StringBuilder("<html><body>");
+		//one section per kind of actions, as they are described for the BDV keymap editor
+		appendSection(html, "Prompting and navigation",
+				new BdvPromptsBehaviours.Descriptions(), service, remainingActions);
+		appendSection(html, "More shortcuts",
+				new SAI.Descriptions(), service, remainingActions);
+
+		//installed but not described actions (if any), at least with their names
+		if (!remainingActions.isEmpty()) {
+			appendSectionHeader(html, "Other actions");
+			remainingActions.stream().sorted().forEach(action -> appendShortcut(html, service, action, action));
+		}
+		return html.append("</body></html>").toString();
+	}
+
+	/**
+	 * Appends a header and then all actions described by the {@code provider} (in the order given there)
+	 * that are installed in the {@code service}; nothing is appended if there is no such action.
+	 * The appended actions are removed from the {@code remainingActions}.
+	 */
+	private static void appendSection(final StringBuilder html, final String title,
+	                                  final CommandDescriptionProvider provider, final BdvPromptsService service,
+	                                  final Set<String> remainingActions) {
+		final CommandDescriptions descriptions = new CommandDescriptions();
+		descriptions.setKeyconfigContext("Remote SAI server dialog");
+		provider.getCommandDescriptions(descriptions);
+
+		final StringBuilder entries = new StringBuilder();
+		for (Map.Entry<Command, String> d : descriptions.createCommandDescriptionsMap().entrySet()) {
+			final String action = d.getKey().getName();
+			if (remainingActions.remove(action)) appendShortcut(entries, service, action, d.getValue());
+		}
+		if (entries.length() == 0) return;
+
+		appendSectionHeader(html, title);
+		html.append(entries);
+	}
+
+	private static void appendSectionHeader(final StringBuilder html, final String title) {
+		html.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"3\"><tr><td bgcolor=\"#dde3ea\">")
+			.append("<font size=\"+1\"><b>").append(escapeHtml(title)).append("</b></font>")
+			.append("</td></tr></table><br>");
+	}
+
+	private static void appendShortcut(final StringBuilder html, final BdvPromptsService service,
+	                                   final String action, final String description) {
+		final String triggers = service.getTriggers(action).stream()
+				.map(InputTrigger::toString)
+				.sorted()
+				.collect(Collectors.joining(" or "));
+		html.append("<b>").append(escapeHtml(triggers.isEmpty() ? "(no shortcut)" : triggers)).append("</b><br>")
+			.append(escapeHtml(description)).append("<br><br>");
+	}
+
+	private static String escapeHtml(final String s) {
+		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+	}
 
 	public void updateServerListDropdown() {
 		final int selIdx = serverListDropdown.getSelectedIndex();
