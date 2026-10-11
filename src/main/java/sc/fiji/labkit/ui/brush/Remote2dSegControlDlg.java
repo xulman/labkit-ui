@@ -2,7 +2,6 @@ package sc.fiji.labkit.ui.brush;
 
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import sc.fiji.labkit.ui.DiskCachedCellSegmentationImg;
-import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -149,9 +148,9 @@ public class Remote2dSegControlDlg extends JPanel {
 				  PROCESS_EXCLUDE_BORDERS, PROCESS_AS_IS, PROCESS_INCLUDE_BORDERS });
 		// Checkboxes
 		cb_showSegSrc = new JCheckBox("Show inputs to segmentation in Fiji", false);  // Checked
-		cb_showSegSrc.addChangeListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
+		cb_showSegSrc.addItemListener( l -> servers.setSegInputToFiji(cb_showSegSrc.isSelected()) );
 		cb_showSegTgt = new JCheckBox("Show outputs to segmentation in Fiji", false); // Unchecked
-		cb_showSegTgt.addChangeListener( l -> servers.setSegOutputToFiji(cb_showSegTgt.isSelected()) );
+		cb_showSegTgt.addItemListener( l -> servers.setSegOutputToFiji(cb_showSegTgt.isSelected()) );
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
