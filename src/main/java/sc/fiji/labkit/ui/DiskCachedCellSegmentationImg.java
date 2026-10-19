@@ -167,13 +167,13 @@ public class DiskCachedCellSegmentationImg <T extends RealType<T> & NativeType<T
 	public final Converter< T, ARGBType > converter = new RealARGBColorConverter<T>() {
 		public final ARGBType black = new ARGBType(0x000000);
 		public final ARGBType[] colors = new ARGBType[] {
-				  new ARGBType(0xBB0000), //red
-				  new ARGBType(0x00BB00), //green
-				  new ARGBType(0x0000BB), //blue
-				  new ARGBType(0xBBBB00), //yellow
-				  new ARGBType(0xBB00BB), //magenta
-				  new ARGBType(0x00BBBB), //cyan
-				  new ARGBType(0xBBBBBB) };
+				  new ARGBType(0xFFBB0000), //red
+				  new ARGBType(0xFF00BB00), //green
+				  new ARGBType(0xFF0000BB), //blue
+				  new ARGBType(0xFFBBBB00), //yellow
+				  new ARGBType(0xFFBB00BB), //magenta
+				  new ARGBType(0xFF00BBBB), //cyan
+				  new ARGBType(0xFFBBBBBB) };
 
 		@Override
 		public void convert(T input, ARGBType output) {
