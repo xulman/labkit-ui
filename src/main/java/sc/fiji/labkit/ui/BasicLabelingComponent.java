@@ -29,12 +29,19 @@
 
 package sc.fiji.labkit.ui;
 
+import bdv.interactive.behaviours.BdvPromptsBehaviours;
 import bdv.ui.splitpanel.SplitPanel;
 import bdv.util.BdvHandle;
 import bdv.util.BdvHandlePanel;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.DisplayMode;
+import bdv.viewer.SourceAndConverter;
+import net.imglib2.Point;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import sc.fiji.labkit.ui.bdv.BdvAutoContrast;
 import sc.fiji.labkit.ui.bdv.BdvLayer;
 import sc.fiji.labkit.ui.bdv.BdvLayerLink;
@@ -42,13 +49,17 @@ import sc.fiji.labkit.ui.brush.*;
 import sc.fiji.labkit.ui.labeling.LabelsLayer;
 import sc.fiji.labkit.ui.models.Holder;
 import sc.fiji.labkit.ui.models.ImageLabelingModel;
+import sc.fiji.labkit.ui.models.SegmentationModel;
 import sc.fiji.labkit.ui.panel.LabelToolsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.scijava.ui.behaviour.util.AbstractNamedAction;
+import sc.fiji.labkit.ui.segmentation.SAI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A swing UI component that shows a Big Data Viewer panel and a tool bar for
@@ -66,12 +77,25 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	private ImageLabelingModel model;
 
+	private final SegmentationModel segmentationModel;
+
 	private JSlider zSlider;
+
+	/** Created in initLabelsPanel(), closed in close(); null if never created. */
+	private BdvPromptsController bdvPromptsController = null;
 
 	public BasicLabelingComponent(final JFrame dialogBoxOwner,
 		final ImageLabelingModel model)
 	{
+		this(dialogBoxOwner,model,null);
+	}
+
+	public BasicLabelingComponent(final JFrame dialogBoxOwner,
+	                              final ImageLabelingModel model,
+	                              final SegmentationModel segModel)
+	{
 		this.model = model;
+		this.segmentationModel = segModel;
 		this.dialogBoxOwner = dialogBoxOwner;
 
 		initBdv(model.spatialDimensions().numDimensions() < 3);
@@ -123,8 +147,33 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 			bdvHandle, model, actionsAndBehaviours);
 		final SelectLabelController selectLabelController =
 			new SelectLabelController(bdvHandle, model, actionsAndBehaviours);
+
+		//pass the Labkit's main window (JFrame) title to BDV's JPanel
+		//so that a downstream code that works solely with that BDV
+		//could provide some identification (to which BDV it belongs)
+		bdvHandle.getViewerPanel().setName(this.dialogBoxOwner.getTitle());
+
+		bdvPromptsController = new BdvPromptsController(bdvHandle);
+		//
+		final Remote2dSegFillers remoteSegFill = new Remote2dSegFillers(bdvPromptsController, model);
+		//
+		final DiskCachedCellSegmentationImg<UnsignedShortType> localSegImg
+				  = DiskCachedCellSegmentationImg.create(model.labeling().get());
+		final List<SourceAndConverter<?>> sources = bdvHandle.getViewerPanel().state().getSources();
+		boolean isXYT = model.labeling().get().numDimensions() == 3 && model.isTimeSeries();
+		final SourceAndConverter<UnsignedShortType> localSegImgAsSAC
+				= localSegImg.getSAC(sources.get(sources.size() - 1), isXYT);
+		bdvHandle.getViewerPanel().state().addSource(localSegImgAsSAC);
+		bdvHandle.getViewerPanel().state().setSourceActive(localSegImgAsSAC, true);
+		//
+		SAI<UnsignedShortType> sai = new SAI<>(bdvPromptsController, remoteSegFill, model, localSegImg);
+
+		//Labkit tailoring because of the SAI: always 2D brushes, enable overlapping pixels
+		brushController.setPlanarMode(true);
+		remoteSegFill.setOverlapping(true);
+
 		final JPanel toolsPanel = new LabelToolsPanel(brushController,
-			floodFillController, selectLabelController, planarModeController);
+			floodFillController, selectLabelController, planarModeController, sai);
 		actionsAndBehaviours.addAction(new ChangeLabel(model));
 		return toolsPanel;
 	}
@@ -137,6 +186,14 @@ public class BasicLabelingComponent extends JPanel implements AutoCloseable {
 
 	@Override
 	public void close() {
+		if (bdvPromptsController != null) {
+			try {
+				bdvPromptsController.close();
+			} catch (Exception e) {
+				System.out.println("ERROR: closing BdvPromptsController: " + e.getMessage());
+			}
+			bdvPromptsController = null;
+		}
 		bdvHandle.close();
 	}
 
